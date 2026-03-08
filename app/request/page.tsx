@@ -16,15 +16,15 @@ price: "",
 checkoutLink: "",
 };
 
-function buildQrUrl(value: string) {
-if (!value) return "";
+function buildQrUrl(link: string) {
+if (!link) return "";
 return `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
-value
+link
 )}`;
 }
 
 function TagCard({ data }: { data: TagData }) {
-const qrUrl = buildQrUrl(data.checkoutLink);
+const qr = buildQrUrl(data.checkoutLink);
 
 return (
 <div
@@ -33,13 +33,13 @@ width: "3.5in",
 height: "2in",
 border: "1.5px solid #111",
 borderRadius: 14,
-background: "#fff",
 padding: 12,
-position: "relative",
+boxSizing: "border-box",
 display: "grid",
 gridTemplateColumns: "1fr 80px",
 gap: 10,
-boxSizing: "border-box",
+position: "relative",
+background: "#fff",
 }}
 >
 <div>
@@ -51,7 +51,7 @@ textTransform: "uppercase",
 fontWeight: 700,
 }}
 >
-{data.storeName || "Design Any Space"}
+{data.storeName}
 </div>
 
 <div
@@ -62,7 +62,7 @@ fontWeight: 900,
 lineHeight: 1.1,
 }}
 >
-{data.productName || "Item Name"}
+{data.productName}
 </div>
 
 <div
@@ -70,10 +70,9 @@ style={{
 marginTop: 6,
 fontSize: 22,
 fontWeight: 900,
-lineHeight: 1,
 }}
 >
-{data.price || "$0"}
+{data.price}
 </div>
 </div>
 
@@ -83,7 +82,6 @@ display: "flex",
 flexDirection: "column",
 alignItems: "center",
 justifyContent: "flex-end",
-gap: 6,
 }}
 >
 <div
@@ -96,21 +94,12 @@ overflow: "hidden",
 display: "flex",
 alignItems: "center",
 justifyContent: "center",
-background: "#fff",
 }}
 >
-{qrUrl ? (
-<img
-src={qrUrl}
-alt="QR"
-style={{ width: "100%", height: "100%" }}
-/>
-) : (
-<div style={{ fontSize: 9 }}>QR</div>
-)}
+{qr && <img src={qr} alt="QR" style={{ width: "100%" }} />}
 </div>
 
-<div style={{ fontSize: 8 }}>Scan</div>
+<div style={{ fontSize: 8, marginTop: 4 }}>Scan</div>
 </div>
 
 <div
@@ -130,7 +119,7 @@ created by: designanyspace.com
 function PrintableSheet({ data }: { data: TagData }) {
 return (
 <div
-id="print-sheet"
+id="print-area"
 style={{
 display: "grid",
 gridTemplateColumns: "repeat(2, 3.5in)",
@@ -148,12 +137,16 @@ justifyContent: "center",
 export default function RequestPage() {
 const [form, setForm] = useState<TagData>(EMPTY_FORM);
 
-function updateField<K extends keyof TagData>(key: K, value: TagData[K]) {
+function update<K extends keyof TagData>(key: K, value: TagData[K]) {
 setForm((prev) => ({ ...prev, [key]: value }));
 }
 
-function handlePrint() {
+function printTags() {
 window.print();
+}
+
+function resetForm() {
+setForm(EMPTY_FORM);
 }
 
 return (
@@ -167,26 +160,26 @@ fontFamily: "Arial, sans-serif",
 >
 <style jsx global>{`
 @media print {
-.no-print {
-display: none !important;
-}
-
-body {
-background: white !important;
+.controls {
+display: none;
 }
 
 @page {
 size: letter;
 margin: 0.5in;
 }
+
+body {
+background: white;
+}
 }
 `}</style>
 
 <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-<div className="no-print" style={{ marginBottom: 24 }}>
+<div className="controls">
 <h1 style={{ marginBottom: 10 }}>Design Any Space</h1>
-<p style={{ color: "#666", fontSize: 20, margin: 0 }}>
-QR Tag Generator — Turn a checkout link into printable tags
+<p style={{ color: "#666", fontSize: 18 }}>
+QR Tag Generator — turn a checkout link into printable tags
 </p>
 </div>
 
@@ -195,10 +188,11 @@ style={{
 display: "grid",
 gridTemplateColumns: "420px 1fr",
 gap: 30,
+marginTop: 20,
 }}
 >
 <section
-className="no-print"
+className="controls"
 style={{
 background: "#fff",
 padding: 24,
@@ -206,15 +200,14 @@ borderRadius: 16,
 border: "1px solid #e5e5e5",
 }}
 >
-<h2 style={{ marginTop: 0 }}>Tag Details</h2>
+<h2>Tag Details</h2>
 
 <div style={{ display: "grid", gap: 14 }}>
 <label>
 Shop name
 <input
 value={form.storeName}
-onChange={(e) => updateField("storeName", e.target.value)}
-placeholder="Design Any Space"
+onChange={(e) => update("storeName", e.target.value)}
 style={inputStyle}
 />
 </label>
@@ -223,8 +216,7 @@ style={inputStyle}
 Product name
 <input
 value={form.productName}
-onChange={(e) => updateField("productName", e.target.value)}
-placeholder="Vintage Chair"
+onChange={(e) => update("productName", e.target.value)}
 style={inputStyle}
 />
 </label>
@@ -233,8 +225,7 @@ style={inputStyle}
 Price
 <input
 value={form.price}
-onChange={(e) => updateField("price", e.target.value)}
-placeholder="$27"
+onChange={(e) => update("price", e.target.value)}
 style={inputStyle}
 />
 </label>
@@ -243,8 +234,7 @@ style={inputStyle}
 Checkout link
 <input
 value={form.checkoutLink}
-onChange={(e) => updateField("checkoutLink", e.target.value)}
-placeholder="https://buy.stripe.com/..."
+onChange={(e) => update("checkoutLink", e.target.value)}
 style={inputStyle}
 />
 </label>
@@ -258,26 +248,18 @@ gap: 10,
 flexWrap: "wrap",
 }}
 >
-<button onClick={handlePrint} style={buttonStyle}>
+<button onClick={printTags} style={buttonStyle}>
 Print Tags
 </button>
 
 <button
-onClick={() => window.print()}
+onClick={printTags}
 style={{ ...buttonStyle, background: "#444" }}
 >
 Download PDF
 </button>
 
-<button
-onClick={() => setForm(EMPTY_FORM)}
-style={{
-...buttonStyle,
-background: "#fff",
-color: "#111",
-border: "1px solid #ddd",
-}}
->
+<button onClick={resetForm} style={resetButton}>
 Reset
 </button>
 </div>
@@ -291,9 +273,8 @@ borderRadius: 16,
 border: "1px solid #e5e5e5",
 }}
 >
-<h2 className="no-print" style={{ marginTop: 0 }}>
-Tag Sheet Preview
-</h2>
+<h2 className="controls">Tag Sheet Preview</h2>
+
 <PrintableSheet data={form} />
 </section>
 </div>
@@ -317,6 +298,15 @@ borderRadius: 999,
 border: "none",
 background: "#111",
 color: "#fff",
+fontWeight: 700,
+cursor: "pointer",
+};
+
+const resetButton: React.CSSProperties = {
+padding: "12px 18px",
+borderRadius: 999,
+border: "1px solid #ddd",
+background: "#fff",
 fontWeight: 700,
 cursor: "pointer",
 };
