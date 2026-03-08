@@ -2,19 +2,19 @@
 
 import { useState } from "react";
 
-type TagData = {
-storeName: string;
+type ProductTag = {
 productName: string;
 price: string;
 checkoutLink: string;
 };
 
-const EMPTY_FORM: TagData = {
-storeName: "Design Any Space",
+const EMPTY_TAG: ProductTag = {
 productName: "",
 price: "",
 checkoutLink: "",
 };
+
+const EMPTY_TAGS: ProductTag[] = Array.from({ length: 6 }, () => ({ ...EMPTY_TAG }));
 
 function buildQrUrl(link: string) {
 if (!link) return "";
@@ -23,8 +23,14 @@ link
 )}`;
 }
 
-function TagCard({ data }: { data: TagData }) {
-const qr = buildQrUrl(data.checkoutLink);
+function TagCard({
+storeName,
+item,
+}: {
+storeName: string;
+item: ProductTag;
+}) {
+const qr = buildQrUrl(item.checkoutLink);
 
 return (
 <div
@@ -51,7 +57,7 @@ textTransform: "uppercase",
 fontWeight: 700,
 }}
 >
-{data.storeName}
+{storeName || "Design Any Space"}
 </div>
 
 <div
@@ -62,7 +68,7 @@ fontWeight: 900,
 lineHeight: 1.1,
 }}
 >
-{data.productName || "Item Name"}
+{item.productName || "Item Name"}
 </div>
 
 <div
@@ -72,7 +78,7 @@ fontSize: 22,
 fontWeight: 900,
 }}
 >
-{data.price || "$0"}
+{item.price || "$0"}
 </div>
 </div>
 
@@ -121,7 +127,13 @@ created by: designanyspace.com
 );
 }
 
-function PrintableSheet({ data }: { data: TagData }) {
+function PrintableSheet({
+storeName,
+tags,
+}: {
+storeName: string;
+tags: ProductTag[];
+}) {
 return (
 <div
 style={{
@@ -131,26 +143,30 @@ gap: "0.25in",
 justifyContent: "center",
 }}
 >
-{Array.from({ length: 6 }).map((_, i) => (
-<TagCard key={i} data={data} />
+{tags.map((item, i) => (
+<TagCard key={i} storeName={storeName} item={item} />
 ))}
 </div>
 );
 }
 
 export default function Page() {
-const [form, setForm] = useState<TagData>(EMPTY_FORM);
+const [storeName, setStoreName] = useState("Design Any Space");
+const [tags, setTags] = useState<ProductTag[]>(EMPTY_TAGS);
 
-function update<K extends keyof TagData>(key: K, value: TagData[K]) {
-setForm((prev) => ({ ...prev, [key]: value }));
+function updateTag(index: number, key: keyof ProductTag, value: string) {
+setTags((prev) =>
+prev.map((tag, i) => (i === index ? { ...tag, [key]: value } : tag))
+);
+}
+
+function resetForm() {
+setStoreName("Design Any Space");
+setTags(Array.from({ length: 6 }, () => ({ ...EMPTY_TAG })));
 }
 
 function printTags() {
 window.print();
-}
-
-function resetForm() {
-setForm(EMPTY_FORM);
 }
 
 return (
@@ -179,18 +195,18 @@ margin: 0.5in;
 }
 `}</style>
 
-<div style={{ maxWidth: 1200, margin: "0 auto" }}>
+<div style={{ maxWidth: 1300, margin: "0 auto" }}>
 <div className="controls">
 <h1 style={{ marginBottom: 10 }}>Design Any Space</h1>
 <p style={{ color: "#666", fontSize: 18 }}>
-QR Tag Generator — turn a checkout link into printable tags
+QR Tag Generator — turn checkout links into printable mixed-product tags
 </p>
 </div>
 
 <div
 style={{
 display: "grid",
-gridTemplateColumns: "420px 1fr",
+gridTemplateColumns: "460px 1fr",
 gap: 30,
 marginTop: 20,
 }}
@@ -204,44 +220,66 @@ borderRadius: 16,
 border: "1px solid #e5e5e5",
 }}
 >
-<h2>Tag Details</h2>
+<h2 style={{ marginTop: 0 }}>Tag Details</h2>
 
-<div style={{ display: "grid", gap: 14 }}>
+<div style={{ marginBottom: 20 }}>
 <label>
 Shop name
 <input
-value={form.storeName}
-onChange={(e) => update("storeName", e.target.value)}
+value={storeName}
+onChange={(e) => setStoreName(e.target.value)}
 style={inputStyle}
 />
 </label>
+</div>
 
-<label>
+<div style={{ display: "grid", gap: 18 }}>
+{tags.map((tag, index) => (
+<div
+key={index}
+style={{
+border: "1px solid #e5e5e5",
+borderRadius: 12,
+padding: 14,
+background: "#fafafa",
+}}
+>
+<div style={{ fontWeight: 700, marginBottom: 10 }}>
+Tag {index + 1}
+</div>
+
+<label style={{ display: "block", marginBottom: 10 }}>
 Product name
 <input
-value={form.productName}
-onChange={(e) => update("productName", e.target.value)}
+value={tag.productName}
+onChange={(e) =>
+updateTag(index, "productName", e.target.value)
+}
 style={inputStyle}
 />
 </label>
 
-<label>
+<label style={{ display: "block", marginBottom: 10 }}>
 Price
 <input
-value={form.price}
-onChange={(e) => update("price", e.target.value)}
+value={tag.price}
+onChange={(e) => updateTag(index, "price", e.target.value)}
 style={inputStyle}
 />
 </label>
 
-<label>
+<label style={{ display: "block" }}>
 Checkout link
 <input
-value={form.checkoutLink}
-onChange={(e) => update("checkoutLink", e.target.value)}
+value={tag.checkoutLink}
+onChange={(e) =>
+updateTag(index, "checkoutLink", e.target.value)
+}
 style={inputStyle}
 />
 </label>
+</div>
+))}
 </div>
 
 <div
@@ -277,9 +315,11 @@ borderRadius: 16,
 border: "1px solid #e5e5e5",
 }}
 >
-<h2 className="controls">Tag Sheet Preview</h2>
+<h2 className="controls" style={{ marginTop: 0 }}>
+Mixed Tag Sheet Preview
+</h2>
 
-<PrintableSheet data={form} />
+<PrintableSheet storeName={storeName} tags={tags} />
 </section>
 </div>
 </div>
@@ -294,6 +334,7 @@ borderRadius: 10,
 border: "1px solid #ddd",
 marginTop: 6,
 boxSizing: "border-box",
+background: "#fff",
 };
 
 const buttonStyle: React.CSSProperties = {
