@@ -18,7 +18,7 @@ checkoutLink: "",
 
 function buildQrUrl(link: string) {
 if (!link) return "";
-return `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
+return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
 link
 )}`;
 }
@@ -62,7 +62,7 @@ fontWeight: 900,
 lineHeight: 1.1,
 }}
 >
-{data.productName}
+{data.productName || "Item Name"}
 </div>
 
 <div
@@ -72,7 +72,7 @@ fontSize: 22,
 fontWeight: 900,
 }}
 >
-{data.price}
+{data.price || "$0"}
 </div>
 </div>
 
@@ -94,9 +94,14 @@ overflow: "hidden",
 display: "flex",
 alignItems: "center",
 justifyContent: "center",
+background: "#fff",
 }}
 >
-{qr && <img src={qr} alt="QR" style={{ width: "100%" }} />}
+{qr ? (
+<img src={qr} alt="QR Code" style={{ width: "100%" }} />
+) : (
+<span style={{ fontSize: 8 }}>QR</span>
+)}
 </div>
 
 <div style={{ fontSize: 8, marginTop: 4 }}>Scan</div>
@@ -119,7 +124,6 @@ created by: designanyspace.com
 function PrintableSheet({ data }: { data: TagData }) {
 return (
 <div
-id="print-area"
 style={{
 display: "grid",
 gridTemplateColumns: "repeat(2, 3.5in)",
@@ -134,7 +138,7 @@ justifyContent: "center",
 );
 }
 
-export default function RequestPage() {
+export default function Page() {
 const [form, setForm] = useState<TagData>(EMPTY_FORM);
 
 function update<K extends keyof TagData>(key: K, value: TagData[K]) {
@@ -164,13 +168,13 @@ fontFamily: "Arial, sans-serif",
 display: none;
 }
 
+body {
+background: white;
+}
+
 @page {
 size: letter;
 margin: 0.5in;
-}
-
-body {
-background: white;
 }
 }
 `}</style>
