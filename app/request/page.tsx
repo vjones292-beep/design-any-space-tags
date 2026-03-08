@@ -18,7 +18,7 @@ checkoutLink: "",
 
 function buildQrUrl(value: string) {
 if (!value) return "";
-return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+return `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
 value
 )}`;
 }
@@ -59,6 +59,7 @@ style={{
 marginTop: 6,
 fontSize: 16,
 fontWeight: 900,
+lineHeight: 1.1,
 }}
 >
 {data.productName}
@@ -69,6 +70,7 @@ style={{
 marginTop: 6,
 fontSize: 22,
 fontWeight: 900,
+lineHeight: 1,
 }}
 >
 {data.price}
@@ -94,6 +96,7 @@ overflow: "hidden",
 display: "flex",
 alignItems: "center",
 justifyContent: "center",
+background: "#fff",
 }}
 >
 {qrUrl ? (
@@ -127,6 +130,7 @@ created by: designanyspace.com
 function PrintableSheet({ data }: { data: TagData }) {
 return (
 <div
+id="print-sheet"
 style={{
 display: "grid",
 gridTemplateColumns: "repeat(2, 3.5in)",
@@ -164,10 +168,16 @@ fontFamily: "Arial, sans-serif",
 <style jsx global>{`
 @media print {
 .no-print {
-display: none;
+display: none !important;
 }
+
 body {
-background: white;
+background: white !important;
+}
+
+@page {
+size: letter;
+margin: 0.5in;
 }
 }
 `}</style>
@@ -238,7 +248,7 @@ style={inputStyle}
 </label>
 </div>
 
-<div style={{ marginTop: 20, display: "flex", gap: 10 }}>
+<div style={{ marginTop: 20, display: "flex", gap: 10, flexWrap: "wrap" }}>
 <button onClick={handlePrint} style={buttonStyle}>
 Print Tags
 </button>
@@ -248,6 +258,18 @@ onClick={() => window.print()}
 style={{ ...buttonStyle, background: "#444" }}
 >
 Download PDF
+</button>
+
+<button
+onClick={() => setForm(EMPTY_FORM)}
+style={{
+...buttonStyle,
+background: "#fff",
+color: "#111",
+border: "1px solid #ddd",
+}}
+>
+Reset
 </button>
 </div>
 </section>
@@ -274,6 +296,7 @@ padding: 12,
 borderRadius: 10,
 border: "1px solid #ddd",
 marginTop: 6,
+boxSizing: "border-box",
 };
 
 const buttonStyle: React.CSSProperties = {
