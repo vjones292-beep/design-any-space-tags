@@ -1,4 +1,4 @@
-"use client";
+use client";
 
 import { useState } from "react";
 
@@ -18,7 +18,7 @@ const EMPTY_TAGS: ProductTag[] = Array.from({ length: 6 }, () => ({ ...EMPTY_TAG
 
 function buildQrUrl(link: string) {
 if (!link) return "";
-return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+return `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
 link
 )}`;
 }
@@ -42,7 +42,7 @@ borderRadius: 14,
 padding: 12,
 boxSizing: "border-box",
 display: "grid",
-gridTemplateColumns: "1fr 80px",
+gridTemplateColumns: "1fr 86px",
 gap: 10,
 position: "relative",
 background: "#fff",
@@ -66,6 +66,7 @@ marginTop: 6,
 fontSize: 16,
 fontWeight: 900,
 lineHeight: 1.1,
+minHeight: 34,
 }}
 >
 {item.productName || "Item Name"}
@@ -76,6 +77,7 @@ style={{
 marginTop: 6,
 fontSize: 22,
 fontWeight: 900,
+minHeight: 24,
 }}
 >
 {item.price || "$0"}
@@ -92,8 +94,8 @@ justifyContent: "flex-end",
 >
 <div
 style={{
-width: 70,
-height: 70,
+width: 74,
+height: 74,
 border: "1px solid rgba(0,0,0,0.2)",
 borderRadius: 8,
 overflow: "hidden",
@@ -104,13 +106,26 @@ background: "#fff",
 }}
 >
 {qr ? (
-<img src={qr} alt="QR Code" style={{ width: "100%" }} />
+<img
+src={qr}
+alt="QR Code"
+style={{ width: "100%", height: "100%", objectFit: "cover" }}
+/>
 ) : (
-<span style={{ fontSize: 8 }}>QR</span>
+<span style={{ fontSize: 8, opacity: 0.6 }}>QR</span>
 )}
 </div>
 
-<div style={{ fontSize: 8, marginTop: 4 }}>Scan</div>
+<div
+style={{
+fontSize: 8,
+marginTop: 4,
+fontWeight: 700,
+textAlign: "center",
+}}
+>
+Scan to Buy
+</div>
 </div>
 
 <div
@@ -181,11 +196,11 @@ fontFamily: "Arial, sans-serif",
 <style jsx global>{`
 @media print {
 .controls {
-display: none;
+display: none !important;
 }
 
 body {
-background: white;
+background: white !important;
 }
 
 @page {
@@ -198,7 +213,7 @@ margin: 0.5in;
 <div style={{ maxWidth: 1300, margin: "0 auto" }}>
 <div className="controls">
 <h1 style={{ marginBottom: 10 }}>Design Any Space</h1>
-<p style={{ color: "#666", fontSize: 18 }}>
+<p style={{ color: "#666", fontSize: 18, marginTop: 0 }}>
 QR Tag Generator — turn checkout links into printable mixed-product tags
 </p>
 </div>
