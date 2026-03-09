@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import QRCode from "react-qr-code";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 type TagItem = {
 productName: string;
@@ -46,6 +48,40 @@ const printSheet = () => {
 window.print();
 };
 
+const downloadPDF = async () => {
+const element = document.querySelector(".tag-sheet-grid") as HTMLElement | null;
+if (!element) return;
+
+const canvas = await html2canvas(element, {
+backgroundColor: "#ffffff",
+scale: 2,
+});
+
+const imgData = canvas.toDataURL("image/png");
+
+const pdf = new jsPDF({
+orientation: "portrait",
+unit: "pt",
+format: "letter",
+});
+
+const pageWidth = pdf.internal.pageSize.getWidth();
+const pageHeight = pdf.internal.pageSize.getHeight();
+const margin = 24;
+const usableWidth = pageWidth - margin * 2;
+const usableHeight = pageHeight - margin * 2;
+
+const imgWidth = canvas.width;
+const imgHeight = canvas.height;
+const ratio = Math.min(usableWidth / imgWidth, usableHeight / imgHeight);
+
+const finalWidth = imgWidth * ratio;
+const finalHeight = imgHeight * ratio;
+
+pdf.addImage(imgData, "PNG", margin, margin, finalWidth, finalHeight);
+pdf.save("designanyspace-tags.pdf");
+};
+
 return (
 <>
 <main style={styles.page}>
@@ -70,6 +106,13 @@ onClick={clearAll}
 style={styles.secondaryButton}
 >
 Clear All
+</button>
+<button
+type="button"
+onClick={downloadPDF}
+style={styles.secondaryButton}
+>
+Download PDF
 </button>
 <button
 type="button"
@@ -184,6 +227,12 @@ designanyspace.com
 <div className="tag-sheet-grid" style={styles.tagSheetGrid}>
 {tags.map((tag, index) => {
 const hasLink = tag.checkoutLink.trim().length > 0;
+const displayName = tag.productName.trim()
+? tag.productName.trim().toUpperCase()
+: "PRODUCT NAME";
+const displayPrice = tag.price.trim()
+? `$${tag.price.trim().replace(/^\$/, "")}`
+: "";
 
 return (
 <article
@@ -199,17 +248,13 @@ style={styles.tagCard}
 <div style={styles.tagMiddle}>
 <div style={styles.tagTextColumn}>
 <div style={styles.tagNameWrap}>
-<div style={styles.tagName}>
-{tag.productName.trim() || "Product Name"}
-</div>
+<div style={styles.tagName}>{displayName}</div>
 </div>
 
-<div>
-<div style={styles.tagPrice}>
-{tag.price.trim() || ""}
-</div>
+<div style={styles.tagBottomBlock}>
+<div style={styles.tagPrice}>{displayPrice}</div>
 <div style={styles.tagFooter}>
-created by: designanyspace.com
+designanyspace.com
 </div>
 </div>
 </div>
@@ -527,17 +572,21 @@ minHeight: 0,
 tagTextColumn: {
 display: "flex",
 flexDirection: "column",
-justifyContent: "space-between",
+justifyContent: "flex-start",
 minWidth: 0,
 },
 tagNameWrap: {
-flex: 1,
+flex: "0 0 auto",
 },
 tagName: {
 fontSize: 24,
 lineHeight: 1.02,
 fontWeight: 800,
 wordBreak: "break-word",
+marginBottom: 12,
+},
+tagBottomBlock: {
+marginTop: "auto",
 },
 tagPrice: {
 fontSize: 20,
