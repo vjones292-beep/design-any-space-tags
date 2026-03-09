@@ -154,7 +154,7 @@ displays, and pop-up events.
 <h2 style={styles.sectionTitle}>Tag Details</h2>
 
 <div style={styles.fieldBlock}>
-<label style={styles.label}>Shop name</label>
+<label style={styles.label}>Store name :</label>
 <input
 type="text"
 value={shopName}
@@ -169,7 +169,7 @@ style={styles.input}
 <h3 style={styles.tagEditorTitle}>Tag {index + 1}</h3>
 
 <div style={styles.fieldBlock}>
-<label style={styles.label}>Product name</label>
+<label style={styles.label}>Product name :</label>
 <input
 type="text"
 value={tag.productName}
@@ -181,7 +181,7 @@ style={styles.input}
 </div>
 
 <div style={styles.fieldBlock}>
-<label style={styles.label}>Price</label>
+<label style={styles.label}>Price :</label>
 <input
 type="text"
 value={tag.price}
@@ -193,7 +193,7 @@ style={styles.input}
 </div>
 
 <div style={styles.fieldBlock}>
-<label style={styles.label}>Checkout link</label>
+<label style={styles.label}>Checkout link :</label>
 <input
 type="url"
 value={tag.checkoutLink}
@@ -227,11 +227,14 @@ designanyspace.com
 <div className="tag-sheet-grid" style={styles.tagSheetGrid}>
 {tags.map((tag, index) => {
 const hasLink = tag.checkoutLink.trim().length > 0;
+const displayStore = shopName.trim()
+? shopName.trim().toUpperCase()
+: "STORE NAME";
 const displayName = tag.productName.trim()
 ? tag.productName.trim().toUpperCase()
 : "PRODUCT NAME";
 const displayPrice = tag.price.trim()
-? `$${tag.price.trim().replace(/^\$/, "")}`
+? `$${tag.price.trim().replace(/[^0-9.]/g, "")}`
 : "";
 
 return (
@@ -241,30 +244,24 @@ className="tag-card"
 style={styles.tagCard}
 >
 <div style={styles.tagInner}>
-<div style={styles.tagBrand}>
-{(shopName || "Design Any Space").toUpperCase()}
+<div style={styles.tagTopBlock}>
+<div style={styles.tagStoreName}>{displayStore}</div>
+<div style={styles.tagProductName}>{displayName}</div>
 </div>
 
-<div style={styles.tagMiddle}>
-<div style={styles.tagTextColumn}>
-<div style={styles.tagNameWrap}>
-<div style={styles.tagName}>{displayName}</div>
-</div>
-
-<div style={styles.tagBottomBlock}>
+<div style={styles.tagBottomRow}>
+<div style={styles.tagLeftBottom}>
 <div style={styles.tagPrice}>{displayPrice}</div>
-<div style={styles.tagFooter}>
-designanyspace.com
-</div>
-</div>
+<div style={styles.tagFooter}>designanyspace.com</div>
 </div>
 
 <div style={styles.qrColumn}>
+<div style={styles.scanPayLabel}>Scan to pay :</div>
 <div style={styles.qrBox}>
 {hasLink ? (
 <QRCode
 value={tag.checkoutLink}
-size={74}
+size={78}
 bgColor="#FFFFFF"
 fgColor="#000000"
 />
@@ -272,7 +269,6 @@ fgColor="#000000"
 <div style={styles.qrPlaceholder}>QR</div>
 )}
 </div>
-<div style={styles.scanText}>Scan to Buy</div>
 </div>
 </div>
 </div>
@@ -316,7 +312,7 @@ gap: 10px !important;
 }
 
 .tag-card {
-aspect-ratio: 2.15 / 1 !important;
+aspect-ratio: 2 / 1 !important;
 }
 }
 
@@ -343,7 +339,7 @@ gap: 10px !important;
 .tag-card {
 break-inside: avoid;
 page-break-inside: avoid;
-aspect-ratio: 2.05 / 1 !important;
+aspect-ratio: 2 / 1 !important;
 }
 }
 `}</style>
@@ -491,7 +487,7 @@ label: {
 display: "block",
 marginBottom: 7,
 fontSize: 14,
-fontWeight: 600,
+fontWeight: 700,
 },
 input: {
 width: "100%",
@@ -546,69 +542,76 @@ tagCard: {
 border: "1.5px solid rgba(0,0,0,0.85)",
 borderRadius: 18,
 background: "#fff",
-aspectRatio: "2.05 / 1",
+aspectRatio: "2 / 1",
 overflow: "hidden",
 },
 tagInner: {
 height: "100%",
-padding: "12px 12px 10px 12px",
+padding: "14px 16px 12px 16px",
 display: "flex",
 flexDirection: "column",
+justifyContent: "space-between",
 },
-tagBrand: {
-fontSize: 11,
-lineHeight: 1,
-fontWeight: 800,
-letterSpacing: "0.12em",
-marginBottom: 8,
-},
-tagMiddle: {
-display: "grid",
-gridTemplateColumns: "minmax(0, 1fr) 88px",
-gap: 10,
-flex: 1,
-minHeight: 0,
-},
-tagTextColumn: {
+tagTopBlock: {
 display: "flex",
 flexDirection: "column",
-justifyContent: "flex-start",
+gap: 8,
 minWidth: 0,
 },
-tagNameWrap: {
-flex: "0 0 auto",
-},
-tagName: {
+tagStoreName: {
 fontSize: 24,
-lineHeight: 1.02,
+lineHeight: 1,
+fontWeight: 900,
+letterSpacing: "0.06em",
+wordBreak: "break-word",
+},
+tagProductName: {
+fontSize: 18,
+lineHeight: 1.05,
 fontWeight: 800,
 wordBreak: "break-word",
-marginBottom: 12,
 },
-tagBottomBlock: {
-marginTop: "auto",
+tagBottomRow: {
+display: "flex",
+justifyContent: "space-between",
+alignItems: "flex-end",
+gap: 12,
+},
+tagLeftBottom: {
+display: "flex",
+flexDirection: "column",
+justifyContent: "flex-end",
+minWidth: 0,
 },
 tagPrice: {
-fontSize: 20,
+fontSize: 26,
 lineHeight: 1,
 fontWeight: 900,
 marginBottom: 6,
-minHeight: 20,
+minHeight: 26,
 },
 tagFooter: {
-fontSize: 9,
+fontSize: 10,
 lineHeight: 1.15,
 color: "rgba(0,0,0,0.75)",
 },
 qrColumn: {
 display: "flex",
 flexDirection: "column",
-justifyContent: "flex-end",
 alignItems: "center",
+justifyContent: "flex-end",
+flexShrink: 0,
+},
+scanPayLabel: {
+fontSize: 11,
+lineHeight: 1,
+fontWeight: 800,
+marginBottom: 6,
+textAlign: "center",
 },
 qrBox: {
-width: 88,
-height: 88,
+width: 96,
+height: 96,
 border: "1.5px solid rgba(0,0,0,0.80)",
 borderRadius: 14,
 display: "flex",
@@ -622,12 +625,5 @@ qrPlaceholder: {
 fontSize: 16,
 fontWeight: 700,
 color: "rgba(0,0,0,0.5)",
-},
-scanText: {
-marginTop: 6,
-fontSize: 10,
-lineHeight: 1,
-fontWeight: 700,
-textAlign: "center",
 },
 };
