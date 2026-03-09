@@ -9,7 +9,8 @@ price: string;
 checkoutLink: string;
 };
 
-const EMPTY_TAGS: TagItem[] = Array.from({ length: 6 }, () => ({
+const createEmptyTags = (): TagItem[] =>
+Array.from({ length: 6 }, () => ({
 productName: "",
 price: "",
 checkoutLink: "",
@@ -17,7 +18,7 @@ checkoutLink: "",
 
 export default function HomePage() {
 const [shopName, setShopName] = useState("Design Any Space");
-const [tags, setTags] = useState<TagItem[]>(EMPTY_TAGS);
+const [tags, setTags] = useState<TagItem[]>(createEmptyTags());
 
 const readyCount = useMemo(() => {
 return tags.filter(
@@ -38,7 +39,7 @@ prev.map((tag, i) => (i === index ? { ...tag, [field]: value } : tag))
 
 const clearAll = () => {
 setShopName("Design Any Space");
-setTags(EMPTY_TAGS);
+setTags(createEmptyTags());
 };
 
 const printSheet = () => {
@@ -46,143 +47,110 @@ window.print();
 };
 
 return (
-<main className="min-h-screen bg-white text-black">
-<div className="mx-auto max-w-7xl px-4 py-6 md:px-6 lg:px-8">
-<header className="mb-6 rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
-<div className="mb-2 inline-flex rounded-full border border-black/10 px-3 py-1 text-xs font-medium tracking-wide">
-Design Any Space
-</div>
+<>
+<main style={styles.page}>
+<div style={styles.container}>
+<header style={styles.headerCard}>
+<div style={styles.badge}>Design Any Space</div>
 
-<div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+<div style={styles.headerRow}>
 <div>
-<h1 className="text-3xl font-bold tracking-tight">
-QR Product Tag Generator
-</h1>
-<p className="mt-2 max-w-2xl text-sm text-black/70">
-Create one clean printable sheet with up to 6 different product
-tags for markets, pop-ups, vintage booths, and retail displays.
+<h1 style={styles.title}>QR Product Tag Generator</h1>
+<p style={styles.subtitle}>
+Create one clean printable sheet with up to 6 different
+product tags for markets, pop-ups, vintage booths, and retail
+displays.
 </p>
 </div>
 
-<div className="flex flex-wrap gap-2 print:hidden">
-<button
-onClick={clearAll}
-className="rounded-xl border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
->
+<div style={styles.buttonRow} className="no-print">
+<button type="button" onClick={clearAll} style={styles.secondaryButton}>
 Clear All
 </button>
-<button
-onClick={printSheet}
-className="rounded-xl bg-black px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
->
+<button type="button" onClick={printSheet} style={styles.primaryButton}>
 Print Tags
 </button>
 </div>
 </div>
 </header>
 
-<section className="mb-6 grid gap-3 sm:grid-cols-3 print:hidden">
-<div className="rounded-2xl border border-black/10 p-4 shadow-sm">
-<p className="text-xs font-semibold uppercase tracking-wide text-black/55">
-How it works
-</p>
-<p className="mt-2 text-sm">
+<section style={styles.infoGrid} className="no-print">
+<div style={styles.infoCard}>
+<div style={styles.infoLabel}>How it works</div>
+<div style={styles.infoText}>
 Add product details, paste each checkout link, then print one
 mixed tag sheet.
-</p>
+</div>
 </div>
 
-<div className="rounded-2xl border border-black/10 p-4 shadow-sm">
-<p className="text-xs font-semibold uppercase tracking-wide text-black/55">
-Best for
-</p>
-<p className="mt-2 text-sm">
-Vendor booths, antique shops, furniture pieces, boutique displays,
-and pop-up events.
-</p>
+<div style={styles.infoCard}>
+<div style={styles.infoLabel}>Best for</div>
+<div style={styles.infoText}>
+Vendor booths, antique shops, furniture pieces, boutique
+displays, and pop-up events.
+</div>
 </div>
 
-<div className="rounded-2xl border border-black/10 p-4 shadow-sm">
-<p className="text-xs font-semibold uppercase tracking-wide text-black/55">
-Filled tags
-</p>
-<p className="mt-2 text-2xl font-bold">
-{readyCount} of 6 ready
-</p>
+<div style={styles.infoCard}>
+<div style={styles.infoLabel}>Filled tags</div>
+<div style={styles.readyText}>{readyCount} of 6 ready</div>
 </div>
 </section>
 
-<div className="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
-<aside className="print:hidden">
-<div className="rounded-2xl border border-black/10 p-4 shadow-sm">
-<h2 className="text-2xl font-bold">Tag Details</h2>
+<div style={styles.mainGrid}>
+<aside style={styles.sidebar} className="no-print">
+<div style={styles.panel}>
+<h2 style={styles.sectionTitle}>Tag Details</h2>
 
-<div className="mt-4">
-<label className="mb-2 block text-sm font-medium">
-Shop name
-</label>
+<div style={styles.fieldBlock}>
+<label style={styles.label}>Shop name</label>
 <input
 type="text"
 value={shopName}
 onChange={(e) => setShopName(e.target.value)}
-className="w-full rounded-xl border border-black/15 px-4 py-3 text-sm outline-none transition focus:border-black"
-placeholder="Enter shop name"
+style={styles.input}
 />
 </div>
 
-<div className="mt-5 space-y-4">
+<div style={styles.tagsStack}>
 {tags.map((tag, index) => (
-<div
-key={index}
-className="rounded-2xl border border-black/10 p-4"
->
-<h3 className="text-base font-semibold">Tag {index + 1}</h3>
+<div key={index} style={styles.tagEditorCard}>
+<h3 style={styles.tagEditorTitle}>Tag {index + 1}</h3>
 
-<div className="mt-3 space-y-3">
-<div>
-<label className="mb-1 block text-sm font-medium">
-Product name
-</label>
+<div style={styles.fieldBlock}>
+<label style={styles.label}>Product name</label>
 <input
 type="text"
 value={tag.productName}
 onChange={(e) =>
 updateTag(index, "productName", e.target.value)
 }
-className="w-full rounded-xl border border-black/15 px-4 py-3 text-sm outline-none transition focus:border-black"
-placeholder=""
+style={styles.input}
 />
 </div>
 
-<div>
-<label className="mb-1 block text-sm font-medium">
-Price
-</label>
+<div style={styles.fieldBlock}>
+<label style={styles.label}>Price</label>
 <input
 type="text"
 value={tag.price}
 onChange={(e) =>
 updateTag(index, "price", e.target.value)
 }
-className="w-full rounded-xl border border-black/15 px-4 py-3 text-sm outline-none transition focus:border-black"
-placeholder=""
+style={styles.input}
 />
 </div>
 
-<div>
-<label className="mb-1 block text-sm font-medium">
-Checkout link
-</label>
+<div style={styles.fieldBlock}>
+<label style={styles.label}>Checkout link</label>
 <input
 type="url"
 value={tag.checkoutLink}
 onChange={(e) =>
 updateTag(index, "checkoutLink", e.target.value)
 }
-className="w-full rounded-xl border border-black/15 px-4 py-3 text-sm outline-none transition focus:border-black"
-placeholder=""
+style={styles.input}
 />
-</div>
 </div>
 </div>
 ))}
@@ -190,77 +158,66 @@ placeholder=""
 </div>
 </aside>
 
-<section>
-<div className="rounded-2xl border border-black/10 p-4 shadow-sm print:border-0 print:p-0 print:shadow-none">
-<div className="mb-4 flex items-start justify-between print:mb-2">
+<section style={styles.previewSection}>
+<div style={styles.panel}>
+<div style={styles.previewHeader}>
 <div>
-<h2 className="text-2xl font-bold print:text-xl">
-Mixed Tag Sheet Preview
-</h2>
-<p className="mt-1 text-sm text-black/70 print:hidden">
+<h2 style={styles.sectionTitle}>Mixed Tag Sheet Preview</h2>
+<p style={styles.previewSubtext} className="no-print">
 One printable sheet with up to 6 different product tags.
 </p>
 </div>
-
-<p className="hidden text-sm font-medium text-black/70 md:block print:hidden">
+<div style={styles.previewSite} className="no-print">
 designanyspace.com
-</p>
+</div>
 </div>
 
-<div className="tag-sheet-grid">
+<div className="tag-sheet-grid" style={styles.tagSheetGrid}>
 {tags.map((tag, index) => {
 const hasLink = tag.checkoutLink.trim().length > 0;
-const hasName = tag.productName.trim().length > 0;
-const showTag = hasLink || hasName || tag.price.trim().length > 0;
 
 return (
-<article key={index} className="tag-card">
-<div className="tag-card-inner">
-<div className="tag-top">
-<p className="tag-brand">
+<article key={index} className="tag-card" style={styles.tagCard}>
+<div style={styles.tagInner}>
+<div style={styles.tagBrand}>
 {(shopName || "Design Any Space").toUpperCase()}
-</p>
 </div>
 
-<div className="tag-middle">
-<div className="tag-text">
-<div className="tag-name-wrap">
-<p className="tag-name">
+<div style={styles.tagMiddle}>
+<div style={styles.tagTextColumn}>
+<div style={styles.tagNameWrap}>
+<div style={styles.tagName}>
 {tag.productName.trim() || "Product Name"}
-</p>
+</div>
 </div>
 
-<div className="tag-bottom-left">
-<p className="tag-price">
+<div>
+<div style={styles.tagPrice}>
 {tag.price.trim() || ""}
-</p>
-<p className="tag-footer">
+</div>
+<div style={styles.tagFooter}>
 created by: designanyspace.com
-</p>
+</div>
 </div>
 </div>
 
-<div className="tag-qr-wrap">
-<div className="tag-qr-box">
+<div style={styles.qrColumn}>
+<div style={styles.qrBox}>
 {hasLink ? (
 <QRCode
 value={tag.checkoutLink}
-size={84}
+size={82}
 bgColor="#FFFFFF"
 fgColor="#000000"
 />
 ) : (
-<div className="tag-qr-placeholder">QR</div>
+<div style={styles.qrPlaceholder}>QR</div>
 )}
 </div>
-<p className="tag-scan-text">Scan to Buy</p>
+<div style={styles.scanText}>Scan to Buy</div>
 </div>
 </div>
 </div>
-
-{!showTag && (
-<div className="sr-only">Empty tag slot {index + 1}</div>
-)}
 </article>
 );
 })}
@@ -269,163 +226,25 @@ fgColor="#000000"
 </section>
 </div>
 </div>
+</main>
 
 <style jsx global>{`
 html,
 body {
-background: #ffffff;
-color: #000000;
-}
-
-.tag-sheet-grid {
-display: grid;
-grid-template-columns: repeat(2, minmax(0, 1fr));
-gap: 16px;
-}
-
-.tag-card {
-border: 1.5px solid rgba(0, 0, 0, 0.9);
-border-radius: 18px;
-background: #ffffff;
-aspect-ratio: 1.9 / 1;
-overflow: hidden;
-}
-
-.tag-card-inner {
-display: flex;
-flex-direction: column;
-height: 100%;
-padding: 12px 12px 10px 12px;
-}
-
-.tag-top {
-display: flex;
-justify-content: space-between;
-align-items: flex-start;
-margin-bottom: 8px;
-}
-
-.tag-brand {
-font-size: 12px;
-line-height: 1;
-font-weight: 800;
-letter-spacing: 0.12em;
 margin: 0;
-}
-
-.tag-middle {
-display: grid;
-grid-template-columns: minmax(0, 1fr) 96px;
-gap: 12px;
-flex: 1;
-min-height: 0;
-}
-
-.tag-text {
-display: flex;
-flex-direction: column;
-justify-content: space-between;
-min-width: 0;
-}
-
-.tag-name-wrap {
-flex: 1;
-display: flex;
-align-items: flex-start;
-min-height: 0;
-}
-
-.tag-name {
-margin: 0;
-font-size: 18px;
-line-height: 1.05;
-font-weight: 800;
-word-break: break-word;
-}
-
-.tag-bottom-left {
-margin-top: 8px;
-}
-
-.tag-price {
-margin: 0 0 6px 0;
-font-size: 20px;
-line-height: 1;
-font-weight: 900;
-}
-
-.tag-footer {
-margin: 0;
-font-size: 9px;
-line-height: 1.1;
-color: rgba(0, 0, 0, 0.75);
-}
-
-.tag-qr-wrap {
-display: flex;
-flex-direction: column;
-justify-content: flex-end;
-align-items: center;
-}
-
-.tag-qr-box {
-width: 96px;
-height: 96px;
-border: 1.5px solid rgba(0, 0, 0, 0.8);
-border-radius: 14px;
-display: flex;
-align-items: center;
-justify-content: center;
+padding: 0;
 background: #ffffff;
-overflow: hidden;
-padding: 6px;
+color: #111111;
+font-family: Arial, Helvetica, sans-serif;
 }
 
-.tag-qr-placeholder {
-font-size: 16px;
-font-weight: 700;
-color: rgba(0, 0, 0, 0.5);
-}
-
-.tag-scan-text {
-margin: 6px 0 0 0;
-font-size: 11px;
-font-weight: 700;
-line-height: 1;
-text-align: center;
+* {
+box-sizing: border-box;
 }
 
 @media (max-width: 1100px) {
 .tag-sheet-grid {
-grid-template-columns: 1fr;
-}
-}
-
-@media (max-width: 640px) {
-.tag-card {
-aspect-ratio: 1.65 / 1;
-}
-
-.tag-middle {
-grid-template-columns: minmax(0, 1fr) 88px;
-gap: 10px;
-}
-
-.tag-qr-box {
-width: 88px;
-height: 88px;
-}
-
-.tag-name {
-font-size: 16px;
-}
-
-.tag-price {
-font-size: 18px;
-}
-
-.tag-brand {
-font-size: 11px;
+grid-template-columns: 1fr !important;
 }
 }
 
@@ -435,25 +254,15 @@ size: letter portrait;
 margin: 0.35in;
 }
 
-html,
+.no-print {
+display: none !important;
+}
+
 body {
-background: #ffffff !important;
-}
-
-body * {
-visibility: hidden;
-}
-
-.tag-sheet-grid,
-.tag-sheet-grid * {
-visibility: visible;
+background: white !important;
 }
 
 .tag-sheet-grid {
-position: absolute;
-left: 0;
-top: 0;
-width: 100%;
 display: grid !important;
 grid-template-columns: 1fr 1fr !important;
 gap: 10px !important;
@@ -462,41 +271,282 @@ gap: 10px !important;
 .tag-card {
 break-inside: avoid;
 page-break-inside: avoid;
-aspect-ratio: 1.9 / 1;
-border: 1.5px solid #000;
-border-radius: 16px;
-}
-
-.tag-card-inner {
-padding: 10px 10px 8px 10px;
-}
-
-.tag-name {
-font-size: 17px;
-}
-
-.tag-price {
-font-size: 20px;
-}
-
-.tag-footer {
-font-size: 8.5px;
-}
-
-.tag-brand {
-font-size: 11px;
-}
-
-.tag-qr-box {
-width: 88px;
-height: 88px;
-}
-
-.tag-scan-text {
-font-size: 10px;
 }
 }
 `}</style>
-</main>
+</>
 );
 }
+
+const styles: { [key: string]: React.CSSProperties } = {
+page: {
+minHeight: "100vh",
+background: "#ffffff",
+color: "#111111",
+},
+container: {
+maxWidth: "1320px",
+margin: "0 auto",
+padding: "24px 20px 40px",
+},
+headerCard: {
+border: "1px solid rgba(0,0,0,0.10)",
+borderRadius: 22,
+background: "#fff",
+padding: 20,
+boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
+marginBottom: 20,
+},
+badge: {
+display: "inline-block",
+border: "1px solid rgba(0,0,0,0.10)",
+borderRadius: 999,
+padding: "7px 12px",
+fontSize: 12,
+fontWeight: 600,
+letterSpacing: 0.3,
+marginBottom: 10,
+},
+headerRow: {
+display: "flex",
+flexWrap: "wrap",
+justifyContent: "space-between",
+alignItems: "flex-end",
+gap: 16,
+},
+title: {
+margin: 0,
+fontSize: 50,
+lineHeight: 1.05,
+fontWeight: 800,
+},
+subtitle: {
+margin: "10px 0 0 0",
+maxWidth: 800,
+fontSize: 16,
+lineHeight: 1.5,
+color: "rgba(0,0,0,0.7)",
+},
+buttonRow: {
+display: "flex",
+gap: 10,
+flexWrap: "wrap",
+},
+primaryButton: {
+background: "#111111",
+color: "#ffffff",
+border: "1px solid #111111",
+borderRadius: 14,
+padding: "12px 18px",
+fontSize: 14,
+fontWeight: 700,
+cursor: "pointer",
+},
+secondaryButton: {
+background: "#ffffff",
+color: "#111111",
+border: "1px solid #111111",
+borderRadius: 14,
+padding: "12px 18px",
+fontSize: 14,
+fontWeight: 700,
+cursor: "pointer",
+},
+infoGrid: {
+display: "grid",
+gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+gap: 12,
+marginBottom: 20,
+},
+infoCard: {
+border: "1px solid rgba(0,0,0,0.10)",
+borderRadius: 20,
+padding: 16,
+background: "#fff",
+boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
+},
+infoLabel: {
+fontSize: 12,
+textTransform: "uppercase",
+letterSpacing: 1,
+fontWeight: 700,
+color: "rgba(0,0,0,0.55)",
+marginBottom: 8,
+},
+infoText: {
+fontSize: 15,
+lineHeight: 1.45,
+},
+readyText: {
+fontSize: 30,
+fontWeight: 800,
+lineHeight: 1.1,
+marginTop: 8,
+},
+mainGrid: {
+display: "grid",
+gridTemplateColumns: "380px minmax(0, 1fr)",
+gap: 20,
+alignItems: "start",
+},
+sidebar: {
+minWidth: 0,
+},
+previewSection: {
+minWidth: 0,
+},
+panel: {
+border: "1px solid rgba(0,0,0,0.10)",
+borderRadius: 22,
+padding: 18,
+background: "#fff",
+boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
+},
+sectionTitle: {
+margin: 0,
+fontSize: 22,
+fontWeight: 800,
+},
+fieldBlock: {
+marginTop: 14,
+},
+label: {
+display: "block",
+marginBottom: 7,
+fontSize: 14,
+fontWeight: 600,
+},
+input: {
+width: "100%",
+height: 46,
+borderRadius: 14,
+border: "1px solid rgba(0,0,0,0.14)",
+padding: "0 14px",
+fontSize: 14,
+outline: "none",
+background: "#fff",
+},
+tagsStack: {
+display: "grid",
+gap: 14,
+marginTop: 16,
+},
+tagEditorCard: {
+border: "1px solid rgba(0,0,0,0.10)",
+borderRadius: 18,
+padding: 14,
+background: "#fff",
+},
+tagEditorTitle: {
+margin: 0,
+fontSize: 18,
+fontWeight: 800,
+},
+previewHeader: {
+display: "flex",
+justifyContent: "space-between",
+alignItems: "flex-start",
+gap: 12,
+marginBottom: 14,
+},
+previewSubtext: {
+margin: "6px 0 0 0",
+fontSize: 14,
+color: "rgba(0,0,0,0.7)",
+},
+previewSite: {
+fontSize: 14,
+fontWeight: 600,
+color: "rgba(0,0,0,0.7)",
+paddingTop: 4,
+},
+tagSheetGrid: {
+display: "grid",
+gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+gap: 16,
+},
+tagCard: {
+border: "1.5px solid rgba(0,0,0,0.85)",
+borderRadius: 18,
+background: "#fff",
+aspectRatio: "1.9 / 1",
+overflow: "hidden",
+},
+tagInner: {
+height: "100%",
+padding: "12px 12px 10px 12px",
+display: "flex",
+flexDirection: "column",
+},
+tagBrand: {
+fontSize: 12,
+lineHeight: 1,
+fontWeight: 800,
+letterSpacing: "0.12em",
+marginBottom: 10,
+},
+tagMiddle: {
+display: "grid",
+gridTemplateColumns: "minmax(0, 1fr) 96px",
+gap: 12,
+flex: 1,
+minHeight: 0,
+},
+tagTextColumn: {
+display: "flex",
+flexDirection: "column",
+justifyContent: "space-between",
+minWidth: 0,
+},
+tagNameWrap: {
+flex: 1,
+},
+tagName: {
+fontSize: 28,
+lineHeight: 1.02,
+fontWeight: 800,
+wordBreak: "break-word",
+},
+tagPrice: {
+fontSize: 22,
+lineHeight: 1,
+fontWeight: 900,
+marginBottom: 6,
+minHeight: 22,
+},
+tagFooter: {
+fontSize: 10,
+lineHeight: 1.15,
+color: "rgba(0,0,0,0.75)",
+},
+qrColumn: {
+display: "flex",
+flexDirection: "column",
+justifyContent: "flex-end",
+alignItems: "center",
+},
+qrBox: {
+width: 96,
+height: 96,
+border: "1.5px solid rgba(0,0,0,0.80)",
+borderRadius: 14,
+display: "flex",
+alignItems: "center",
+justifyContent: "center",
+background: "#fff",
+overflow: "hidden",
+padding: 6,
+},
+qrPlaceholder: {
+fontSize: 16,
+fontWeight: 700,
+color: "rgba(0,0,0,0.5)",
+},
+scanText: {
+marginTop: 6,
+fontSize: 11,
+lineHeight: 1,
+fontWeight: 700,
+textAlign: "center",
+},
+};
