@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import QRCode from "react-qr-code";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
 
 export default function Page() {
 
@@ -41,22 +39,6 @@ function printTags(){
 window.print()
 }
 
-async function downloadPDF(){
-
-const sheet=document.querySelector(".sheet") as HTMLElement
-
-const canvas=await html2canvas(sheet)
-
-const img=canvas.toDataURL("image/png")
-
-const pdf=new jsPDF("portrait","px","letter")
-
-pdf.addImage(img,"PNG",20,20)
-
-pdf.save("designanyspace-tags.pdf")
-
-}
-
 return(
 
 <div style={{padding:40,fontFamily:"Arial"}}>
@@ -68,8 +50,6 @@ return(
 <div style={{marginTop:20,display:"flex",gap:10}}>
 
 <button onClick={clearAll}>Clear All</button>
-
-<button onClick={downloadPDF}>Download PDF</button>
 
 <button onClick={printTags}>Print Tags</button>
 
@@ -123,7 +103,7 @@ style={{display:"block",width:400}}
 
 <h2>Mixed Tag Sheet Preview</h2>
 
-<div className="sheet" style={{
+<div style={{
 display:"grid",
 gridTemplateColumns:"1fr 1fr",
 gap:20
@@ -148,7 +128,7 @@ justifyContent:"space-between"
 <div>
 
 <div style={{
-fontSize:26,
+fontSize:28,
 fontWeight:900
 }}>
 
@@ -161,7 +141,7 @@ fontSize:18,
 fontWeight:700
 }}>
 
-{tag.product || "PRODUCT NAME"}
+{tag.product || "Product Name"}
 
 </div>
 
@@ -176,12 +156,10 @@ alignItems:"flex-end"
 <div>
 
 <div style={{
-fontSize:22,
+fontSize:24,
 fontWeight:800
 }}>
-
 {price}
-
 </div>
 
 <div style={{fontSize:12}}>
