@@ -1,4 +1,4 @@
-mport "./globals.css";
+import "./globals.css";
 
 export const metadata = {
 title: "Design Any Space | QR Product Tag Generator",
