@@ -197,7 +197,7 @@ return (
 {hasLink ? (
 <QRCode
 value={tag.checkoutLink}
-size={74}
+size={72}
 bgColor="#FFFFFF"
 fgColor="#000000"
 />
@@ -237,7 +237,7 @@ margin: 0;
 padding: 0;
 background: #ffffff;
 color: #111111;
-font-family: "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive;
+font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 * {
@@ -248,7 +248,7 @@ input,
 button,
 textarea,
 select {
-font-family: "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive;
+font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 .tag-wrap {
@@ -366,8 +366,9 @@ display: "inline-block",
 border: "1px solid rgba(0,0,0,0.10)",
 borderRadius: 999,
 padding: "7px 12px",
-fontSize: 16,
-fontWeight: 700,
+fontSize: 13,
+fontWeight: 600,
+letterSpacing: 0.2,
 marginBottom: 10,
 },
 headerRow: {
@@ -383,15 +384,17 @@ flex: "1 1 600px",
 },
 title: {
 margin: 0,
-fontSize: 38,
+fontSize: 40,
 lineHeight: 1.05,
-fontWeight: 700,
+fontWeight: 800,
+letterSpacing: "-0.02em",
 },
 subtitle: {
 margin: "10px 0 0 0",
 maxWidth: 800,
-fontSize: 18,
+fontSize: 16,
 lineHeight: 1.45,
+color: "rgba(0,0,0,0.75)",
 },
 buttonRow: {
 display: "flex",
@@ -404,7 +407,7 @@ color: "#ffffff",
 border: "1px solid #111111",
 borderRadius: 14,
 padding: "12px 18px",
-fontSize: 16,
+fontSize: 14,
 fontWeight: 700,
 cursor: "pointer",
 },
@@ -414,7 +417,7 @@ color: "#111111",
 border: "1px solid #111111",
 borderRadius: 14,
 padding: "12px 18px",
-fontSize: 16,
+fontSize: 14,
 fontWeight: 700,
 cursor: "pointer",
 },
@@ -432,17 +435,20 @@ background: "#fff",
 boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
 },
 infoLabel: {
-fontSize: 16,
+fontSize: 12,
 fontWeight: 700,
+letterSpacing: "0.08em",
+textTransform: "uppercase",
 marginBottom: 8,
+color: "rgba(0,0,0,0.6)",
 },
 infoText: {
-fontSize: 18,
+fontSize: 15,
 lineHeight: 1.4,
 },
 readyText: {
-fontSize: 34,
-fontWeight: 700,
+fontSize: 28,
+fontWeight: 800,
 lineHeight: 1.1,
 marginTop: 8,
 },
@@ -467,8 +473,9 @@ boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
 },
 sectionTitle: {
 margin: 0,
-fontSize: 22,
-fontWeight: 700,
+fontSize: 20,
+fontWeight: 800,
+letterSpacing: "-0.02em",
 },
 fieldBlock: {
 marginTop: 14,
@@ -476,7 +483,7 @@ marginTop: 14,
 label: {
 display: "block",
 marginBottom: 7,
-fontSize: 18,
+fontSize: 14,
 fontWeight: 700,
 },
 input: {
@@ -485,7 +492,7 @@ height: 46,
 borderRadius: 14,
 border: "1px solid rgba(0,0,0,0.14)",
 padding: "0 14px",
-fontSize: 18,
+fontSize: 14,
 outline: "none",
 background: "#fff",
 },
@@ -502,8 +509,8 @@ background: "#fff",
 },
 editorTitle: {
 margin: 0,
-fontSize: 22,
-fontWeight: 700,
+fontSize: 18,
+fontWeight: 800,
 },
 previewHeader: {
 display: "flex",
@@ -514,12 +521,14 @@ marginBottom: 14,
 },
 previewSubtext: {
 margin: "6px 0 0 0",
-fontSize: 18,
+fontSize: 14,
+color: "rgba(0,0,0,0.7)",
 },
 previewSite: {
-fontSize: 16,
-fontWeight: 700,
+fontSize: 14,
+fontWeight: 600,
 paddingTop: 4,
+color: "rgba(0,0,0,0.7)",
 },
 sheetGrid: {
 display: "grid",
@@ -538,7 +547,7 @@ overflow: "hidden",
 },
 tagInner: {
 height: "100%",
-padding: "16px 18px 14px 18px",
+padding: "14px 16px 12px 16px",
 display: "flex",
 flexDirection: "column",
 justifyContent: "space-between",
@@ -550,12 +559,13 @@ alignItems: "flex-start",
 gap: 14,
 },
 tagStoreName: {
-fontSize: 26,
-lineHeight: 1,
-fontWeight: 700,
-maxWidth: "65%",
+fontSize: 20,
+lineHeight: 1.05,
+fontWeight: 800,
+maxWidth: "64%",
 wordBreak: "break-word",
-minHeight: 26,
+minHeight: 20,
+letterSpacing: "-0.01em",
 },
 tagQrColumn: {
 display: "flex",
@@ -565,14 +575,14 @@ gap: 6,
 flexShrink: 0,
 },
 scanLabel: {
-fontSize: 14,
+fontSize: 11,
 lineHeight: 1,
 fontWeight: 700,
 textAlign: "center",
 },
 qrOuterBox: {
-width: 96,
-height: 96,
+width: 94,
+height: 94,
 border: "1.5px solid rgba(0,0,0,0.85)",
 borderRadius: 12,
 display: "flex",
@@ -589,32 +599,33 @@ justifyContent: "center",
 background: "#fff",
 },
 qrPlaceholder: {
-fontSize: 18,
+fontSize: 16,
 fontWeight: 700,
 color: "rgba(0,0,0,0.55)",
 },
 tagBottomLeft: {
 display: "flex",
 flexDirection: "column",
-justifyContent: "flex-end",
+justifyContent: "flex-start",
 alignItems: "flex-start",
-gap: 6,
+gap: 4,
 minWidth: 0,
-maxWidth: "65%",
+maxWidth: "64%",
+marginTop: -8,
 },
 tagProductName: {
-fontSize: 22,
-lineHeight: 1.05,
+fontSize: 16,
+lineHeight: 1.1,
 fontWeight: 700,
 wordBreak: "break-word",
 },
 tagPrice: {
-fontSize: 24,
+fontSize: 22,
 lineHeight: 1,
-fontWeight: 700,
+fontWeight: 800,
 },
 tagFooter: {
-fontSize: 14,
+fontSize: 10,
 lineHeight: 1.1,
 color: "rgba(0,0,0,0.75)",
 },
