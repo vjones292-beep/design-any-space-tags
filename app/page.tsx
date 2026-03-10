@@ -176,7 +176,8 @@ One printable sheet with up to 6 different product tags.
 {tags.map((tag, index) => {
 const displayStore = storeName.trim().toUpperCase();
 const displayProduct = tag.productName.trim() || "Product Name";
-const displayPrice = tag.price.trim() || "~";
+const cleanedPrice = tag.price.trim().replace(/^\~+/, "");
+const displayPrice = cleanedPrice ? `~${cleanedPrice}` : "~";
 const hasLink = tag.checkoutLink.trim().length > 0;
 
 return (
@@ -197,20 +198,20 @@ return (
 
 <div style={styles.tagBottom}>
 <div style={styles.tagBottomLeft}>
-<div style={styles.tagPrice}>{displayPrice}</div>
 <div style={styles.tagFooter}>
 designanyspace.com
 </div>
 </div>
 
-<div style={styles.qrColumn}>
+<div style={styles.rightColumn}>
+<div style={styles.tagPrice}>{displayPrice}</div>
 <div style={styles.scanLabel}>Scan to pay:</div>
 <div style={styles.qrOuterBox}>
 <div style={styles.qrInnerBox}>
 {hasLink ? (
 <QRCode
 value={tag.checkoutLink}
-size={82}
+size={72}
 bgColor="#FFFFFF"
 fgColor="#000000"
 />
@@ -541,7 +542,7 @@ overflow: "hidden",
 },
 tagInner: {
 height: "100%",
-padding: "16px 18px 14px 18px",
+padding: "14px 16px 12px 16px",
 display: "flex",
 flexDirection: "column",
 justifyContent: "space-between",
@@ -549,19 +550,19 @@ justifyContent: "space-between",
 tagTop: {
 display: "flex",
 flexDirection: "column",
-gap: 10,
+gap: 8,
 minWidth: 0,
 },
 tagStoreName: {
-fontSize: 24,
+fontSize: 22,
 lineHeight: 1,
 fontWeight: 900,
 letterSpacing: "0.03em",
 wordBreak: "break-word",
-minHeight: 24,
+minHeight: 22,
 },
 tagProductName: {
-fontSize: 18,
+fontSize: 16,
 lineHeight: 1.05,
 fontWeight: 800,
 wordBreak: "break-word",
@@ -570,7 +571,7 @@ tagBottom: {
 display: "flex",
 justifyContent: "space-between",
 alignItems: "flex-end",
-gap: 14,
+gap: 12,
 },
 tagBottomLeft: {
 display: "flex",
@@ -578,46 +579,45 @@ flexDirection: "column",
 justifyContent: "flex-end",
 minWidth: 0,
 },
+rightColumn: {
+display: "flex",
+flexDirection: "column",
+alignItems: "center",
+justifyContent: "flex-end",
+flexShrink: 0,
+gap: 4,
+},
 tagPrice: {
-fontSize: 26,
+fontSize: 24,
 lineHeight: 1,
 fontWeight: 900,
-marginBottom: 6,
-minHeight: 26,
+minHeight: 24,
+textAlign: "center",
 },
 tagFooter: {
 fontSize: 10,
 lineHeight: 1.15,
 color: "rgba(0,0,0,0.75)",
 },
-qrColumn: {
-display: "flex",
-flexDirection: "column",
-alignItems: "center",
-justifyContent: "flex-end",
-flexShrink: 0,
-},
 scanLabel: {
-fontSize: 12,
+fontSize: 11,
 lineHeight: 1,
 fontWeight: 800,
-marginBottom: 6,
 textAlign: "center",
 },
 qrOuterBox: {
-width: 108,
-height: 108,
+width: 94,
+height: 94,
 border: "1.5px solid rgba(0,0,0,0.80)",
-borderRadius: 14,
+borderRadius: 12,
 display: "flex",
 alignItems: "center",
 justifyContent: "center",
 background: "#fff",
-overflow: "hidden",
 },
 qrInnerBox: {
-width: 92,
-height: 92,
+width: 80,
+height: 80,
 display: "flex",
 alignItems: "center",
 justifyContent: "center",
