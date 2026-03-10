@@ -51,7 +51,7 @@ return (
 
 <div style={styles.headerRow}>
 <div style={styles.headerTextWrap}>
-<h1 style={styles.title}>QR Product Tag Generator FINAL VERSION</h1>
+<h1 style={styles.title}>QR Product Tag Generator</h1>
 <p style={styles.subtitle}>
 Create one clean printable sheet with up to 6 different
 product tags for markets, pop-ups, vintage booths, and retail
