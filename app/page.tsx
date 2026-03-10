@@ -214,9 +214,6 @@ fgColor="#000000"
 {displayProduct}
 </div>
 <div style={styles.tagPrice}>{displayPrice}</div>
-<div style={styles.tagFooter}>
-designanyspace.com
-</div>
 </div>
 </div>
 </div>
@@ -623,10 +620,5 @@ tagPrice: {
 fontSize: 22,
 lineHeight: 1,
 fontWeight: 800,
-},
-tagFooter: {
-fontSize: 10,
-lineHeight: 1.1,
-color: "rgba(0,0,0,0.75)",
 },
 };
