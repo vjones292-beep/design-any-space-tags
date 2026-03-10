@@ -106,7 +106,6 @@ type="text"
 value={storeName}
 onChange={(e) => setStoreName(e.target.value)}
 style={styles.input}
-placeholder=""
 />
 </div>
 
@@ -124,7 +123,6 @@ onChange={(e) =>
 updateTag(index, "productName", e.target.value)
 }
 style={styles.input}
-placeholder=""
 />
 </div>
 
@@ -137,7 +135,6 @@ onChange={(e) =>
 updateTag(index, "price", e.target.value)
 }
 style={styles.input}
-placeholder=""
 />
 </div>
 
@@ -150,7 +147,6 @@ onChange={(e) =>
 updateTag(index, "checkoutLink", e.target.value)
 }
 style={styles.input}
-placeholder=""
 />
 </div>
 </div>
@@ -174,7 +170,7 @@ One printable sheet with up to 6 different product tags.
 
 <div className="sheet-grid" style={styles.sheetGrid}>
 {tags.map((tag, index) => {
-const displayStore = storeName.trim().toUpperCase();
+const displayStore = storeName.trim();
 const displayProduct = tag.productName.trim() || "Product Name";
 const cleanedPrice = tag.price.trim().replace(/^\~+/, "");
 const displayPrice = cleanedPrice ? `~${cleanedPrice}` : "~";
@@ -189,29 +185,19 @@ return (
 
 <div className="tag-card" style={styles.tagCard}>
 <div style={styles.tagInner}>
-<div style={styles.tagTop}>
-<div style={styles.tagStoreName}>{displayStore}</div>
-<div style={styles.tagProductName}>
-{displayProduct}
-</div>
+<div style={styles.tagHeaderRow}>
+<div style={styles.tagStoreName}>
+{displayStore || "Store Name"}
 </div>
 
-<div style={styles.tagBottom}>
-<div style={styles.tagBottomLeft}>
-<div style={styles.tagFooter}>
-designanyspace.com
-</div>
-</div>
-
-<div style={styles.rightColumn}>
-<div style={styles.tagPrice}>{displayPrice}</div>
-<div style={styles.scanLabel}>Scan to pay:</div>
+<div style={styles.tagQrColumn}>
+<div style={styles.scanLabel}>Scan to pay</div>
 <div style={styles.qrOuterBox}>
 <div style={styles.qrInnerBox}>
 {hasLink ? (
 <QRCode
 value={tag.checkoutLink}
-size={72}
+size={74}
 bgColor="#FFFFFF"
 fgColor="#000000"
 />
@@ -220,6 +206,16 @@ fgColor="#000000"
 )}
 </div>
 </div>
+</div>
+</div>
+
+<div style={styles.tagBottomLeft}>
+<div style={styles.tagProductName}>
+{displayProduct}
+</div>
+<div style={styles.tagPrice}>{displayPrice}</div>
+<div style={styles.tagFooter}>
+designanyspace.com
 </div>
 </div>
 </div>
@@ -241,11 +237,18 @@ margin: 0;
 padding: 0;
 background: #ffffff;
 color: #111111;
-font-family: Arial, Helvetica, sans-serif;
+font-family: "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive;
 }
 
 * {
 box-sizing: border-box;
+}
+
+input,
+button,
+textarea,
+select {
+font-family: "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive;
 }
 
 .tag-wrap {
@@ -363,9 +366,8 @@ display: "inline-block",
 border: "1px solid rgba(0,0,0,0.10)",
 borderRadius: 999,
 padding: "7px 12px",
-fontSize: 12,
-fontWeight: 600,
-letterSpacing: 0.3,
+fontSize: 16,
+fontWeight: 700,
 marginBottom: 10,
 },
 headerRow: {
@@ -381,16 +383,15 @@ flex: "1 1 600px",
 },
 title: {
 margin: 0,
-fontSize: 40,
+fontSize: 38,
 lineHeight: 1.05,
-fontWeight: 800,
+fontWeight: 700,
 },
 subtitle: {
 margin: "10px 0 0 0",
 maxWidth: 800,
-fontSize: 16,
-lineHeight: 1.5,
-color: "rgba(0,0,0,0.7)",
+fontSize: 18,
+lineHeight: 1.45,
 },
 buttonRow: {
 display: "flex",
@@ -403,7 +404,7 @@ color: "#ffffff",
 border: "1px solid #111111",
 borderRadius: 14,
 padding: "12px 18px",
-fontSize: 14,
+fontSize: 16,
 fontWeight: 700,
 cursor: "pointer",
 },
@@ -413,7 +414,7 @@ color: "#111111",
 border: "1px solid #111111",
 borderRadius: 14,
 padding: "12px 18px",
-fontSize: 14,
+fontSize: 16,
 fontWeight: 700,
 cursor: "pointer",
 },
@@ -431,20 +432,17 @@ background: "#fff",
 boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
 },
 infoLabel: {
-fontSize: 12,
-textTransform: "uppercase",
-letterSpacing: 1,
+fontSize: 16,
 fontWeight: 700,
-color: "rgba(0,0,0,0.55)",
 marginBottom: 8,
 },
 infoText: {
-fontSize: 15,
-lineHeight: 1.45,
+fontSize: 18,
+lineHeight: 1.4,
 },
 readyText: {
-fontSize: 30,
-fontWeight: 800,
+fontSize: 34,
+fontWeight: 700,
 lineHeight: 1.1,
 marginTop: 8,
 },
@@ -469,8 +467,8 @@ boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
 },
 sectionTitle: {
 margin: 0,
-fontSize: 20,
-fontWeight: 800,
+fontSize: 22,
+fontWeight: 700,
 },
 fieldBlock: {
 marginTop: 14,
@@ -478,7 +476,7 @@ marginTop: 14,
 label: {
 display: "block",
 marginBottom: 7,
-fontSize: 14,
+fontSize: 18,
 fontWeight: 700,
 },
 input: {
@@ -487,7 +485,7 @@ height: 46,
 borderRadius: 14,
 border: "1px solid rgba(0,0,0,0.14)",
 padding: "0 14px",
-fontSize: 14,
+fontSize: 18,
 outline: "none",
 background: "#fff",
 },
@@ -504,8 +502,8 @@ background: "#fff",
 },
 editorTitle: {
 margin: 0,
-fontSize: 18,
-fontWeight: 800,
+fontSize: 22,
+fontWeight: 700,
 },
 previewHeader: {
 display: "flex",
@@ -516,13 +514,11 @@ marginBottom: 14,
 },
 previewSubtext: {
 margin: "6px 0 0 0",
-fontSize: 14,
-color: "rgba(0,0,0,0.7)",
+fontSize: 18,
 },
 previewSite: {
-fontSize: 14,
-fontWeight: 600,
-color: "rgba(0,0,0,0.7)",
+fontSize: 16,
+fontWeight: 700,
 paddingTop: 4,
 },
 sheetGrid: {
@@ -542,73 +538,42 @@ overflow: "hidden",
 },
 tagInner: {
 height: "100%",
-padding: "14px 16px 12px 16px",
+padding: "16px 18px 14px 18px",
 display: "flex",
 flexDirection: "column",
 justifyContent: "space-between",
 },
-tagTop: {
+tagHeaderRow: {
 display: "flex",
-flexDirection: "column",
-gap: 8,
-minWidth: 0,
+justifyContent: "space-between",
+alignItems: "flex-start",
+gap: 14,
 },
 tagStoreName: {
-fontSize: 22,
+fontSize: 26,
 lineHeight: 1,
-fontWeight: 900,
-letterSpacing: "0.03em",
+fontWeight: 700,
+maxWidth: "65%",
 wordBreak: "break-word",
-minHeight: 22,
+minHeight: 26,
 },
-tagProductName: {
-fontSize: 16,
-lineHeight: 1.05,
-fontWeight: 800,
-wordBreak: "break-word",
-},
-tagBottom: {
-display: "flex",
-justifyContent: "space-between",
-alignItems: "flex-end",
-gap: 12,
-},
-tagBottomLeft: {
-display: "flex",
-flexDirection: "column",
-justifyContent: "flex-end",
-minWidth: 0,
-},
-rightColumn: {
+tagQrColumn: {
 display: "flex",
 flexDirection: "column",
 alignItems: "center",
-justifyContent: "flex-end",
+gap: 6,
 flexShrink: 0,
-gap: 4,
-},
-tagPrice: {
-fontSize: 24,
-lineHeight: 1,
-fontWeight: 900,
-minHeight: 24,
-textAlign: "center",
-},
-tagFooter: {
-fontSize: 10,
-lineHeight: 1.15,
-color: "rgba(0,0,0,0.75)",
 },
 scanLabel: {
-fontSize: 11,
+fontSize: 14,
 lineHeight: 1,
-fontWeight: 800,
+fontWeight: 700,
 textAlign: "center",
 },
 qrOuterBox: {
-width: 94,
-height: 94,
-border: "1.5px solid rgba(0,0,0,0.80)",
+width: 96,
+height: 96,
+border: "1.5px solid rgba(0,0,0,0.85)",
 borderRadius: 12,
 display: "flex",
 alignItems: "center",
@@ -624,8 +589,33 @@ justifyContent: "center",
 background: "#fff",
 },
 qrPlaceholder: {
-fontSize: 16,
+fontSize: 18,
 fontWeight: 700,
-color: "rgba(0,0,0,0.5)",
+color: "rgba(0,0,0,0.55)",
+},
+tagBottomLeft: {
+display: "flex",
+flexDirection: "column",
+justifyContent: "flex-end",
+alignItems: "flex-start",
+gap: 6,
+minWidth: 0,
+maxWidth: "65%",
+},
+tagProductName: {
+fontSize: 22,
+lineHeight: 1.05,
+fontWeight: 700,
+wordBreak: "break-word",
+},
+tagPrice: {
+fontSize: 24,
+lineHeight: 1,
+fontWeight: 700,
+},
+tagFooter: {
+fontSize: 14,
+lineHeight: 1.1,
+color: "rgba(0,0,0,0.75)",
 },
 };
