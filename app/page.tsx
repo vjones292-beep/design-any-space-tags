@@ -3,13 +3,13 @@
 import { useMemo, useState } from "react";
 import QRCode from "react-qr-code";
 
-type TagItem = {
+type Tag = {
 productName: string;
 price: string;
 checkoutLink: string;
 };
 
-const createEmptyTags = (): TagItem[] =>
+const makeEmptyTags = (): Tag[] =>
 Array.from({ length: 6 }, () => ({
 productName: "",
 price: "",
@@ -18,16 +18,17 @@ checkoutLink: "",
 
 export default function Page() {
 const [storeName, setStoreName] = useState("Design Any Space");
-const [tags, setTags] = useState<TagItem[]>(createEmptyTags());
+const [tags, setTags] = useState<Tag[]>(makeEmptyTags());
 
 const readyCount = useMemo(() => {
 return tags.filter(
 (tag) =>
-tag.productName.trim().length > 0 && tag.checkoutLink.trim().length > 0
+tag.productName.trim().length > 0 &&
+tag.checkoutLink.trim().length > 0
 ).length;
 }, [tags]);
 
-function updateTag(index: number, field: keyof TagItem, value: string) {
+function updateTag(index: number, field: keyof Tag, value: string) {
 setTags((prev) =>
 prev.map((tag, i) => (i === index ? { ...tag, [field]: value } : tag))
 );
@@ -35,7 +36,7 @@ prev.map((tag, i) => (i === index ? { ...tag, [field]: value } : tag))
 
 function clearAll() {
 setStoreName("Design Any Space");
-setTags(createEmptyTags());
+setTags(makeEmptyTags());
 }
 
 function printTags() {
@@ -46,11 +47,11 @@ return (
 <>
 <main style={styles.page}>
 <div style={styles.container}>
-<header style={styles.headerCard} className="no-print">
+<header style={styles.header} className="no-print">
 <div style={styles.badge}>Design Any Space</div>
 
 <div style={styles.headerRow}>
-<div style={styles.headerTextWrap}>
+<div style={styles.headerText}>
 <h1 style={styles.title}>QR Product Tag Generator</h1>
 <p style={styles.subtitle}>
 Create one clean printable sheet with up to 6 different
@@ -60,10 +61,10 @@ displays.
 </div>
 
 <div style={styles.buttonRow}>
-<button type="button" onClick={clearAll} style={styles.secondaryButton}>
+<button onClick={clearAll} style={styles.secondaryButton}>
 Clear All
 </button>
-<button type="button" onClick={printTags} style={styles.primaryButton}>
+<button onClick={printTags} style={styles.primaryButton}>
 Print Tags
 </button>
 </div>
@@ -110,8 +111,8 @@ style={styles.input}
 
 <div style={styles.tagsStack}>
 {tags.map((tag, index) => (
-<div key={index} style={styles.tagEditorCard}>
-<h3 style={styles.tagEditorTitle}>Tag {index + 1}</h3>
+<div key={index} style={styles.editorCard}>
+<h3 style={styles.editorTitle}>Tag {index + 1}</h3>
 
 <div style={styles.fieldBlock}>
 <label style={styles.label}>Product name:</label>
@@ -167,10 +168,8 @@ One printable sheet with up to 6 different product tags.
 <div style={styles.previewSite}>designanyspace.com</div>
 </div>
 
-<div className="tag-sheet-grid" style={styles.tagSheetGrid}>
+<div className="sheet-grid" style={styles.sheetGrid}>
 {tags.map((tag, index) => {
-const hasLink = tag.checkoutLink.trim().length > 0;
-
 const displayStore = storeName.trim()
 ? storeName.trim().toUpperCase()
 : "STORE NAME";
@@ -179,9 +178,10 @@ const displayProduct = tag.productName.trim()
 ? tag.productName.trim()
 : "Product Name";
 
-const displayPrice = tag.price.trim()
-? `$${tag.price.trim().replace(/[^0-9.]/g, "")}`
-: "";
+const cleanPrice = tag.price.trim().replace(/[^0-9.]/g, "");
+const displayPrice = cleanPrice ? `$${cleanPrice}` : "";
+
+const hasLink = tag.checkoutLink.trim().length > 0;
 
 return (
 <div key={index} className="tag-wrap" style={styles.tagWrap}>
@@ -190,26 +190,30 @@ return (
 <div className="cut-guide cut-guide-bl" />
 <div className="cut-guide cut-guide-br" />
 
-<article className="tag-card" style={styles.tagCard}>
+<div className="tag-card" style={styles.tagCard}>
 <div style={styles.tagInner}>
 <div style={styles.tagTop}>
 <div style={styles.tagStoreName}>{displayStore}</div>
-<div style={styles.tagProductName}>{displayProduct}</div>
+<div style={styles.tagProductName}>
+{displayProduct}
+</div>
 </div>
 
-<div style={styles.tagBottomRow}>
-<div style={styles.tagLeftBottom}>
+<div style={styles.tagBottom}>
+<div style={styles.tagBottomLeft}>
 <div style={styles.tagPrice}>{displayPrice}</div>
-<div style={styles.tagFooter}>designanyspace.com</div>
+<div style={styles.tagFooter}>
+designanyspace.com
+</div>
 </div>
 
 <div style={styles.qrColumn}>
-<div style={styles.scanPayLabel}>Scan to pay:</div>
+<div style={styles.scanLabel}>Scan to pay:</div>
 <div style={styles.qrBox}>
 {hasLink ? (
 <QRCode
 value={tag.checkoutLink}
-size={78}
+size={88}
 bgColor="#FFFFFF"
 fgColor="#000000"
 />
@@ -220,7 +224,7 @@ fgColor="#000000"
 </div>
 </div>
 </div>
-</article>
+</div>
 </div>
 );
 })}
@@ -258,7 +262,7 @@ display: none;
 grid-template-columns: 1fr !important;
 }
 
-.tag-sheet-grid {
+.sheet-grid {
 grid-template-columns: 1fr !important;
 }
 }
@@ -269,11 +273,6 @@ size: letter portrait;
 margin: 0.35in;
 }
 
-html,
-body {
-background: #ffffff !important;
-}
-
 .no-print {
 display: none !important;
 }
@@ -282,7 +281,7 @@ display: none !important;
 display: block !important;
 }
 
-.tag-sheet-grid {
+.sheet-grid {
 display: grid !important;
 grid-template-columns: 1fr 1fr !important;
 gap: 12px !important;
@@ -352,7 +351,7 @@ maxWidth: "1320px",
 margin: "0 auto",
 padding: "24px 20px 40px",
 },
-headerCard: {
+header: {
 border: "1px solid rgba(0,0,0,0.10)",
 borderRadius: 22,
 background: "#fff",
@@ -377,7 +376,7 @@ justifyContent: "space-between",
 alignItems: "flex-end",
 gap: 16,
 },
-headerTextWrap: {
+headerText: {
 minWidth: 0,
 flex: "1 1 600px",
 },
@@ -498,13 +497,13 @@ display: "grid",
 gap: 14,
 marginTop: 16,
 },
-tagEditorCard: {
+editorCard: {
 border: "1px solid rgba(0,0,0,0.10)",
 borderRadius: 18,
 padding: 14,
 background: "#fff",
 },
-tagEditorTitle: {
+editorTitle: {
 margin: 0,
 fontSize: 18,
 fontWeight: 800,
@@ -527,7 +526,7 @@ fontWeight: 600,
 color: "rgba(0,0,0,0.7)",
 paddingTop: 4,
 },
-tagSheetGrid: {
+sheetGrid: {
 display: "grid",
 gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
 gap: 12,
@@ -544,7 +543,7 @@ overflow: "hidden",
 },
 tagInner: {
 height: "100%",
-padding: "14px 16px 12px 16px",
+padding: "16px 18px 14px 18px",
 display: "flex",
 flexDirection: "column",
 justifyContent: "space-between",
@@ -552,40 +551,40 @@ justifyContent: "space-between",
 tagTop: {
 display: "flex",
 flexDirection: "column",
-gap: 10,
+gap: 12,
 minWidth: 0,
 },
 tagStoreName: {
-fontSize: 26,
+fontSize: 32,
 lineHeight: 1,
 fontWeight: 900,
 letterSpacing: "0.04em",
 wordBreak: "break-word",
 },
 tagProductName: {
-fontSize: 18,
+fontSize: 20,
 lineHeight: 1.05,
 fontWeight: 800,
 wordBreak: "break-word",
 },
-tagBottomRow: {
+tagBottom: {
 display: "flex",
 justifyContent: "space-between",
 alignItems: "flex-end",
-gap: 12,
+gap: 14,
 },
-tagLeftBottom: {
+tagBottomLeft: {
 display: "flex",
 flexDirection: "column",
 justifyContent: "flex-end",
 minWidth: 0,
 },
 tagPrice: {
-fontSize: 26,
+fontSize: 28,
 lineHeight: 1,
 fontWeight: 900,
 marginBottom: 6,
-minHeight: 26,
+minHeight: 28,
 },
 tagFooter: {
 fontSize: 10,
@@ -599,16 +598,16 @@ alignItems: "center",
 justifyContent: "flex-end",
 flexShrink: 0,
 },
-scanPayLabel: {
-fontSize: 11,
+scanLabel: {
+fontSize: 12,
 lineHeight: 1,
 fontWeight: 800,
 marginBottom: 6,
 textAlign: "center",
 },
 qrBox: {
-width: 96,
-height: 96,
+width: 104,
+height: 104,
 border: "1.5px solid rgba(0,0,0,0.80)",
 borderRadius: 14,
 display: "flex",
