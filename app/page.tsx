@@ -1,7 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import QRCode from "react-qr-code";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 type Tag = {
 productName: string;
@@ -19,6 +21,7 @@ checkoutLink: "",
 export default function Page() {
 const [storeName, setStoreName] = useState("");
 const [tags, setTags] = useState<Tag[]>(makeEmptyTags());
+const sheetRef = useRef<HTMLDivElement | null>(null);
 
 const readyCount = useMemo(() => {
 return tags.filter(
@@ -43,6 +46,44 @@ function printTags() {
 window.print();
 }
 
+async function downloadPDF() {
+if (!sheetRef.current) return;
+
+const canvas = await html2canvas(sheetRef.current, {
+backgroundColor: "#ffffff",
+scale: 2,
+useCORS: true,
+});
+
+const imgData = canvas.toDataURL("image/png");
+
+const pdf = new jsPDF({
+orientation: "portrait",
+unit: "pt",
+format: "letter",
+});
+
+const pageWidth = pdf.internal.pageSize.getWidth();
+const pageHeight = pdf.internal.pageSize.getHeight();
+const margin = 24;
+
+const usableWidth = pageWidth - margin * 2;
+const usableHeight = pageHeight - margin * 2;
+
+const imgWidth = canvas.width;
+const imgHeight = canvas.height;
+
+const ratio = Math.min(usableWidth / imgWidth, usableHeight / imgHeight);
+const finalWidth = imgWidth * ratio;
+const finalHeight = imgHeight * ratio;
+
+const x = (pageWidth - finalWidth) / 2;
+const y = margin;
+
+pdf.addImage(imgData, "PNG", x, y, finalWidth, finalHeight);
+pdf.save("designanyspace-tags.pdf");
+}
+
 return (
 <>
 <main style={styles.page}>
@@ -63,6 +104,9 @@ displays.
 <div style={styles.buttonRow}>
 <button onClick={clearAll} style={styles.secondaryButton}>
 Clear All
+</button>
+<button onClick={downloadPDF} style={styles.secondaryButton}>
+Download PDF
 </button>
 <button onClick={printTags} style={styles.primaryButton}>
 Print Tags
@@ -168,13 +212,20 @@ One printable sheet with up to 6 different product tags.
 <div style={styles.previewSite}>designanyspace.com</div>
 </div>
 
-<div className="sheet-grid" style={styles.sheetGrid}>
+<div
+ref={sheetRef}
+className="sheet-grid"
+style={styles.sheetGrid}
+>
 {tags.map((tag, index) => {
 const displayStore = storeName.trim();
-const displayProduct = tag.productName.trim() || "Product Name";
-const cleanedPrice = tag.price.trim().replace(/^\~+/, "");
-const displayPrice = cleanedPrice ? `~${cleanedPrice}` : "~";
-const hasLink = tag.checkoutLink.trim().length > 0;
+const displayProduct =
+tag.productName.trim() || "Product Name";
+const cleanedPrice = tag.price.replace(/[^0-9.]/g, "");
+const displayPrice = cleanedPrice ? `~${cleanedPrice}` : "";
+const hasLink =
+tag.checkoutLink.startsWith("https://") ||
+tag.checkoutLink.startsWith("http://");
 
 return (
 <div key={index} className="tag-wrap" style={styles.tagWrap}>
@@ -234,7 +285,8 @@ margin: 0;
 padding: 0;
 background: #ffffff;
 color: #111111;
-font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+font-family: Inter, ui-sans-serif, system-ui, -apple-system,
+BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 * {
@@ -245,7 +297,8 @@ input,
 button,
 textarea,
 select {
-font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+font-family: Inter, ui-sans-serif, system-ui, -apple-system,
+BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 .tag-wrap {
