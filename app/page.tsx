@@ -17,7 +17,7 @@ checkoutLink: "",
 }));
 
 export default function Page() {
-const [storeName, setStoreName] = useState("Design Any Space");
+const [storeName, setStoreName] = useState("");
 const [tags, setTags] = useState<Tag[]>(makeEmptyTags());
 
 const readyCount = useMemo(() => {
@@ -35,7 +35,7 @@ prev.map((tag, i) => (i === index ? { ...tag, [field]: value } : tag))
 }
 
 function clearAll() {
-setStoreName("Design Any Space");
+setStoreName("");
 setTags(makeEmptyTags());
 }
 
@@ -106,6 +106,7 @@ type="text"
 value={storeName}
 onChange={(e) => setStoreName(e.target.value)}
 style={styles.input}
+placeholder=""
 />
 </div>
 
@@ -123,6 +124,7 @@ onChange={(e) =>
 updateTag(index, "productName", e.target.value)
 }
 style={styles.input}
+placeholder=""
 />
 </div>
 
@@ -135,6 +137,7 @@ onChange={(e) =>
 updateTag(index, "price", e.target.value)
 }
 style={styles.input}
+placeholder=""
 />
 </div>
 
@@ -147,6 +150,7 @@ onChange={(e) =>
 updateTag(index, "checkoutLink", e.target.value)
 }
 style={styles.input}
+placeholder=""
 />
 </div>
 </div>
@@ -170,17 +174,9 @@ One printable sheet with up to 6 different product tags.
 
 <div className="sheet-grid" style={styles.sheetGrid}>
 {tags.map((tag, index) => {
-const displayStore = storeName.trim()
-? storeName.trim().toUpperCase()
-: "STORE NAME";
-
-const displayProduct = tag.productName.trim()
-? tag.productName.trim()
-: "Product Name";
-
-const cleanPrice = tag.price.trim().replace(/[^0-9.]/g, "");
-const displayPrice = cleanPrice ? `$${cleanPrice}` : "";
-
+const displayStore = storeName.trim().toUpperCase();
+const displayProduct = tag.productName.trim() || "Product Name";
+const displayPrice = tag.price.trim() || "~";
 const hasLink = tag.checkoutLink.trim().length > 0;
 
 return (
@@ -209,17 +205,19 @@ designanyspace.com
 
 <div style={styles.qrColumn}>
 <div style={styles.scanLabel}>Scan to pay:</div>
-<div style={styles.qrBox}>
+<div style={styles.qrOuterBox}>
+<div style={styles.qrInnerBox}>
 {hasLink ? (
 <QRCode
 value={tag.checkoutLink}
-size={88}
+size={82}
 bgColor="#FFFFFF"
 fgColor="#000000"
 />
 ) : (
 <div style={styles.qrPlaceholder}>QR</div>
 )}
+</div>
 </div>
 </div>
 </div>
@@ -551,18 +549,19 @@ justifyContent: "space-between",
 tagTop: {
 display: "flex",
 flexDirection: "column",
-gap: 12,
+gap: 10,
 minWidth: 0,
 },
 tagStoreName: {
-fontSize: 32,
+fontSize: 24,
 lineHeight: 1,
 fontWeight: 900,
-letterSpacing: "0.04em",
+letterSpacing: "0.03em",
 wordBreak: "break-word",
+minHeight: 24,
 },
 tagProductName: {
-fontSize: 20,
+fontSize: 18,
 lineHeight: 1.05,
 fontWeight: 800,
 wordBreak: "break-word",
@@ -580,11 +579,11 @@ justifyContent: "flex-end",
 minWidth: 0,
 },
 tagPrice: {
-fontSize: 28,
+fontSize: 26,
 lineHeight: 1,
 fontWeight: 900,
 marginBottom: 6,
-minHeight: 28,
+minHeight: 26,
 },
 tagFooter: {
 fontSize: 10,
@@ -605,9 +604,9 @@ fontWeight: 800,
 marginBottom: 6,
 textAlign: "center",
 },
-qrBox: {
-width: 104,
-height: 104,
+qrOuterBox: {
+width: 108,
+height: 108,
 border: "1.5px solid rgba(0,0,0,0.80)",
 borderRadius: 14,
 display: "flex",
@@ -615,7 +614,14 @@ alignItems: "center",
 justifyContent: "center",
 background: "#fff",
 overflow: "hidden",
-padding: 6,
+},
+qrInnerBox: {
+width: 92,
+height: 92,
+display: "flex",
+alignItems: "center",
+justifyContent: "center",
+background: "#fff",
 },
 qrPlaceholder: {
 fontSize: 16,
