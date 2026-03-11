@@ -18,9 +18,13 @@ price: "",
 checkoutLink: "",
 }));
 
+const STRIPE_UNLOCK_LINK =
+"https://buy.stripe.com/5kQ00j4VUbxn7tC8zS2oE00";
+
 export default function Page() {
 const [storeName, setStoreName] = useState("");
 const [tags, setTags] = useState<Tag[]>(makeEmptyTags());
+const [showPaywall, setShowPaywall] = useState(false);
 const sheetRef = useRef<HTMLDivElement | null>(null);
 
 const readyCount = useMemo(() => {
@@ -47,6 +51,10 @@ window.print();
 }
 
 async function downloadPDF() {
+setShowPaywall(true);
+}
+
+async function previewPdfForOwnerOnly() {
 if (!sheetRef.current) return;
 
 const canvas = await html2canvas(sheetRef.current, {
@@ -221,8 +229,8 @@ style={styles.sheetGrid}
 const displayStore = storeName.trim();
 const displayProduct =
 tag.productName.trim() || "Product Name";
-const cleanedPrice = tag.price.replace(/[^0-9.]/g, "");
-const displayPrice = cleanedPrice ? `~${cleanedPrice}` : "";
+const cleanedPrice = tag.price.trim().replace(/^\~+/, "");
+const displayPrice = cleanedPrice ? `~${cleanedPrice}` : "~";
 const hasLink =
 tag.checkoutLink.startsWith("https://") ||
 tag.checkoutLink.startsWith("http://");
@@ -276,6 +284,49 @@ fgColor="#000000"
 </section>
 </div>
 </div>
+
+{showPaywall && (
+<div style={styles.modalOverlay} className="no-print">
+<div style={styles.modalCard}>
+<div style={styles.modalEyebrow}>Unlock Generator</div>
+<h3 style={styles.modalTitle}>Download unlimited PDF tag sheets</h3>
+<p style={styles.modalText}>
+Perfect for vendor booths, antique shops, pop-ups, and retail
+displays.
+</p>
+
+<div style={styles.priceBox}>$9 one-time access</div>
+
+<a
+href={STRIPE_UNLOCK_LINK}
+target="_blank"
+rel="noreferrer"
+style={styles.unlockButton}
+>
+Unlock with Stripe
+</a>
+
+<button
+onClick={() => setShowPaywall(false)}
+style={styles.closeButton}
+>
+Maybe later
+</button>
+
+<button
+onClick={previewPdfForOwnerOnly}
+style={styles.ownerButton}
+>
+Owner test PDF
+</button>
+
+<p style={styles.modalNote}>
+This launch version opens your Stripe checkout link. Secure
+automatic unlocking can be added next.
+</p>
+</div>
+</div>
+)}
 </main>
 
 <style jsx global>{`
@@ -296,7 +347,8 @@ box-sizing: border-box;
 input,
 button,
 textarea,
-select {
+select,
+a {
 font-family: Inter, ui-sans-serif, system-ui, -apple-system,
 BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
@@ -673,5 +725,98 @@ tagPrice: {
 fontSize: 22,
 lineHeight: 1,
 fontWeight: 800,
+},
+
+modalOverlay: {
+position: "fixed",
+inset: 0,
+background: "rgba(0,0,0,0.45)",
+display: "flex",
+alignItems: "center",
+justifyContent: "center",
+padding: 20,
+zIndex: 1000,
+},
+modalCard: {
+width: "100%",
+maxWidth: 440,
+background: "#ffffff",
+borderRadius: 24,
+padding: 24,
+boxShadow: "0 20px 50px rgba(0,0,0,0.20)",
+border: "1px solid rgba(0,0,0,0.08)",
+},
+modalEyebrow: {
+fontSize: 12,
+fontWeight: 800,
+letterSpacing: "0.08em",
+textTransform: "uppercase",
+color: "rgba(0,0,0,0.6)",
+marginBottom: 8,
+},
+modalTitle: {
+margin: 0,
+fontSize: 28,
+lineHeight: 1.1,
+fontWeight: 800,
+},
+modalText: {
+margin: "12px 0 0 0",
+fontSize: 15,
+lineHeight: 1.5,
+color: "rgba(0,0,0,0.75)",
+},
+priceBox: {
+marginTop: 16,
+border: "1px solid rgba(0,0,0,0.12)",
+borderRadius: 16,
+padding: "14px 16px",
+fontSize: 24,
+fontWeight: 800,
+textAlign: "center",
+},
+unlockButton: {
+marginTop: 16,
+display: "block",
+width: "100%",
+textAlign: "center",
+textDecoration: "none",
+background: "#111111",
+color: "#ffffff",
+border: "1px solid #111111",
+borderRadius: 16,
+padding: "14px 18px",
+fontSize: 15,
+fontWeight: 800,
+},
+closeButton: {
+marginTop: 10,
+width: "100%",
+background: "#ffffff",
+color: "#111111",
+border: "1px solid rgba(0,0,0,0.14)",
+borderRadius: 16,
+padding: "12px 18px",
+fontSize: 14,
+fontWeight: 700,
+cursor: "pointer",
+},
+ownerButton: {
+marginTop: 10,
+width: "100%",
+background: "#f5f5f5",
+color: "#111111",
+border: "1px solid rgba(0,0,0,0.10)",
+borderRadius: 16,
+padding: "12px 18px",
+fontSize: 14,
+fontWeight: 700,
+cursor: "pointer",
+},
+modalNote: {
+margin: "12px 0 0 0",
+fontSize: 12,
+lineHeight: 1.5,
+color: "rgba(0,0,0,0.55)",
 },
 };
