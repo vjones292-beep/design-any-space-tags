@@ -13,6 +13,7 @@ price_data: {
 currency: "usd",
 product_data: {
 name: "PDF Tag Sheet Unlock",
+description: "One-time unlock to download printable QR tag sheets",
 },
 unit_amount: 900,
 },
@@ -25,7 +26,10 @@ cancel_url: "https://tags.designanyspace.com",
 
 return NextResponse.json({ url: session.url });
 } catch (error) {
-console.error(error);
-return NextResponse.json({ error: "Stripe error" }, { status: 500 });
+console.error("Stripe checkout error:", error);
+return NextResponse.json(
+{ error: "Unable to create checkout session" },
+{ status: 500 }
+);
 }
 }
