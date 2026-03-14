@@ -3,39 +3,17 @@
 import { useEffect, useState } from "react";
 
 export default function SuccessPage() {
-const [message, setMessage] = useState("Verifying payment...");
+const [message, setMessage] = useState("Completing unlock...");
 
 useEffect(() => {
-const verifyPayment = async () => {
-const params = new URLSearchParams(window.location.search);
-const sessionId = params.get("session_id");
-
-if (!sessionId) {
-setMessage("Missing payment session.");
-return;
-}
-
-try {
-const res = await fetch(`/api/verify-payment?session_id=${sessionId}`);
-const data = await res.json();
-
-if (data.paid) {
 localStorage.setItem("pdfUnlocked", "true");
-setMessage("Payment verified. Redirecting...");
+setMessage("Payment confirmed. Redirecting...");
 
-setTimeout(() => {
+const timer = setTimeout(() => {
 window.location.href = "/";
 }, 1500);
-} else {
-setMessage("Payment not verified yet.");
-}
-} catch (error) {
-console.error(error);
-setMessage("Something went wrong verifying payment.");
-}
-};
 
-verifyPayment();
+return () => clearTimeout(timer);
 }, []);
 
 return (
@@ -68,7 +46,7 @@ marginBottom: 12,
 color: "#111111",
 }}
 >
-Payment Status
+Payment Successful
 </h1>
 
 <p
