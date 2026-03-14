@@ -60,13 +60,23 @@ return next;
 const resetAll = () => {
 setStoreName("");
 setTags(makeEmptyTags());
+localStorage.removeItem("pdfUnlocked");
+setPdfUnlocked(false);
 };
 
 const buildQrUrl = (value: string) => {
-const data = value.trim() || "https://designanyspace.com";
 return `https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(
-data
+value
 )}`;
+};
+
+const formatPrice = (value: string) => {
+const trimmed = value.trim();
+
+if (!trimmed) return "~0.00";
+if (trimmed.startsWith("~")) return trimmed;
+
+return `~${trimmed}`;
 };
 
 const handleDownloadPDF = async () => {
@@ -115,7 +125,7 @@ return (
 <div style={styles.shell}>
 <div style={styles.leftColumn}>
 <div style={styles.headerBlock}>
-<p style={styles.eyebrow}>DesignAnySpace</p>
+<p style={styles.eyebrow}>DESIGNANYSPACE</p>
 <h1 style={styles.title}>QR Tag Generator</h1>
 <p style={styles.subtitle}>
 Create a clean printable tag sheet with 6 QR checkout tags per
@@ -136,7 +146,11 @@ style={styles.input}
 <div style={styles.card}>
 <div style={styles.cardTopRow}>
 <h2 style={styles.sectionTitle}>Tag Details</h2>
-<button type="button" onClick={resetAll} style={styles.secondaryButton}>
+<button
+type="button"
+onClick={resetAll}
+style={styles.secondaryButton}
+>
 Clear All
 </button>
 </div>
@@ -160,7 +174,7 @@ style={styles.input}
 <input
 value={tag.price}
 onChange={(e) => updateTag(index, "price", e.target.value)}
-placeholder="$0.00"
+placeholder="350"
 style={styles.input}
 />
 
@@ -208,33 +222,43 @@ One-time unlock for printable PDF tag sheets.
 
 <div ref={printRef} style={styles.printPage}>
 <div style={styles.grid}>
-{tags.map((tag, index) => (
+{tags.map((tag, index) => {
+const hasQr = tag.checkoutLink.trim() !== "";
+
+return (
 <div key={index} style={styles.tagCard}>
+<div style={styles.tagTopRow}>
+<div style={styles.tagBusinessName}>
+{storeName.trim() || "BUSINESS NAME"}
+</div>
+</div>
+
+<div style={styles.qrSection}>
 <div style={styles.qrWrap}>
+{hasQr ? (
 <img
 src={buildQrUrl(tag.checkoutLink)}
 alt={`QR code ${index + 1}`}
 style={styles.qrImage}
 />
-</div>
-
-<div style={styles.bottomBox}>
-<div style={styles.bottomLeft}>
-<div style={styles.productName}>
-{tag.productName || "Product Name"}
-</div>
-<div style={styles.price}>{tag.price || "$0.00"}</div>
+) : (
+<div style={styles.qrPlaceholder}>QR appears here</div>
+)}
 </div>
 
 <div style={styles.scanText}>scan to pay</div>
 </div>
-</div>
-))}
-</div>
-</div>
 
-<div style={styles.footerNote}>
-created by: designanyspace.com
+<div style={styles.bottomBox}>
+<div style={styles.productName}>
+{tag.productName.trim() || "Product Name"}
+</div>
+<div style={styles.price}>{formatPrice(tag.price)}</div>
+</div>
+</div>
+);
+})}
+</div>
 </div>
 </div>
 </div>
@@ -242,11 +266,17 @@ created by: designanyspace.com
 );
 }
 
+const commonFont = {
+fontFamily: "Arial, Helvetica, sans-serif",
+fontWeight: 700,
+} as const;
+
 const styles: Record<string, React.CSSProperties> = {
 page: {
 minHeight: "100vh",
 background: "#f7f7f5",
 padding: "32px 20px",
+...commonFont,
 },
 shell: {
 maxWidth: 1400,
@@ -275,19 +305,21 @@ fontSize: 12,
 letterSpacing: 1.6,
 textTransform: "uppercase",
 color: "rgba(0,0,0,0.55)",
+...commonFont,
 },
 title: {
 margin: "6px 0 8px",
 fontSize: 34,
 lineHeight: 1.05,
-fontWeight: 700,
 color: "#111",
+...commonFont,
 },
 subtitle: {
 margin: 0,
 fontSize: 15,
 lineHeight: 1.6,
 color: "rgba(0,0,0,0.66)",
+...commonFont,
 },
 card: {
 background: "#fff",
@@ -306,16 +338,16 @@ gap: 12,
 sectionTitle: {
 margin: 0,
 fontSize: 18,
-fontWeight: 700,
 color: "#111",
+...commonFont,
 },
 label: {
 display: "block",
 fontSize: 13,
-fontWeight: 600,
 color: "#222",
 marginBottom: 8,
 marginTop: 10,
+...commonFont,
 },
 input: {
 width: "100%",
@@ -326,6 +358,7 @@ fontSize: 14,
 outline: "none",
 background: "#fff",
 boxSizing: "border-box",
+...commonFont,
 },
 formsWrap: {
 display: "grid",
@@ -340,9 +373,9 @@ background: "#fafafa",
 },
 tagFormHeader: {
 fontSize: 13,
-fontWeight: 700,
 marginBottom: 6,
 color: "#111",
+...commonFont,
 },
 actionRow: {
 display: "flex",
@@ -356,9 +389,9 @@ color: "#fff",
 borderRadius: 16,
 padding: "14px 18px",
 fontSize: 15,
-fontWeight: 700,
 cursor: "pointer",
 width: "100%",
+...commonFont,
 },
 secondaryButton: {
 appearance: "none",
@@ -368,13 +401,14 @@ color: "#111",
 borderRadius: 12,
 padding: "10px 14px",
 fontSize: 13,
-fontWeight: 600,
 cursor: "pointer",
+...commonFont,
 },
 helperText: {
 margin: 0,
 fontSize: 13,
 color: "rgba(0,0,0,0.6)",
+...commonFont,
 },
 previewHeader: {
 display: "flex",
@@ -386,13 +420,14 @@ padding: "4px 2px",
 previewTitle: {
 margin: 0,
 fontSize: 20,
-fontWeight: 700,
 color: "#111",
+...commonFont,
 },
 previewSub: {
 margin: 0,
 fontSize: 13,
 color: "rgba(0,0,0,0.6)",
+...commonFont,
 },
 printPage: {
 width: "100%",
@@ -416,62 +451,87 @@ border: "1.5px solid #111",
 borderRadius: 18,
 display: "flex",
 flexDirection: "column",
-justifyContent: "space-between",
 overflow: "hidden",
-minHeight: 0,
 background: "#fff",
+minHeight: 0,
+},
+tagTopRow: {
+borderBottom: "1.5px solid #111",
+padding: "8px 12px",
+minHeight: 32,
+display: "flex",
+alignItems: "center",
+justifyContent: "flex-start",
+},
+tagBusinessName: {
+fontSize: 11,
+textTransform: "uppercase",
+letterSpacing: 1,
+color: "#111",
+textAlign: "left",
+...commonFont,
+},
+qrSection: {
+flex: 1,
+display: "flex",
+flexDirection: "column",
+alignItems: "center",
+justifyContent: "center",
+padding: "12px 12px 10px",
+gap: 8,
 },
 qrWrap: {
-flex: 1,
+width: "100%",
 display: "flex",
 alignItems: "center",
 justifyContent: "center",
-padding: 14,
+minHeight: 150,
 },
 qrImage: {
-width: "100%",
-maxWidth: 180,
-aspectRatio: "1 / 1",
+width: "140px",
+height: "140px",
 objectFit: "contain",
+},
+qrPlaceholder: {
+width: 140,
+height: 140,
+border: "1.5px dashed rgba(0,0,0,0.25)",
+borderRadius: 12,
+display: "flex",
+alignItems: "center",
+justifyContent: "center",
+fontSize: 13,
+color: "rgba(0,0,0,0.45)",
+textAlign: "center",
+padding: 12,
+boxSizing: "border-box",
+...commonFont,
+},
+scanText: {
+fontSize: 12,
+color: "#111",
+textTransform: "lowercase",
+...commonFont,
 },
 bottomBox: {
 borderTop: "1.5px solid #111",
 padding: "12px 14px",
 display: "flex",
-alignItems: "flex-end",
-justifyContent: "space-between",
-gap: 10,
-minHeight: 70,
-},
-bottomLeft: {
-display: "flex",
 flexDirection: "column",
+justifyContent: "center",
 gap: 4,
-minWidth: 0,
+minHeight: 76,
 },
 productName: {
-fontSize: 14,
-fontWeight: 600,
+fontSize: 15,
 color: "#111",
 lineHeight: 1.2,
 wordBreak: "break-word",
+...commonFont,
 },
 price: {
-fontSize: 13,
-fontWeight: 700,
+fontSize: 15,
 color: "#111",
-},
-scanText: {
-fontSize: 12,
-fontWeight: 600,
-color: "#111",
-whiteSpace: "nowrap",
-textTransform: "lowercase",
-},
-footerNote: {
-fontSize: 12,
-color: "rgba(0,0,0,0.55)",
-textAlign: "center",
-marginTop: 2,
+...commonFont,
 },
 };
