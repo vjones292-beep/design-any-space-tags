@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
-import QRCode from "react-qr-code";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
@@ -11,6 +10,8 @@ price: string;
 checkoutLink: string;
 };
 
+const STRIPE_UNLOCK_LINK = "https://buy.stripe.com/5kQ00j4VUbxn7tC8zS2oE00";
+
 const makeEmptyTags = (): Tag[] =>
 Array.from({ length: 6 }, () => ({
 productName: "",
@@ -18,53 +19,69 @@ price: "",
 checkoutLink: "",
 }));
 
-const STRIPE_UNLOCK_LINK =
-"https://buy.stripe.com/5kQ00j4VUbxn7tC8zS2oE00";
-
 export default function Page() {
 const [storeName, setStoreName] = useState("");
 const [tags, setTags] = useState<Tag[]>(makeEmptyTags());
-const [showPaywall, setShowPaywall] = useState(false);
-const sheetRef = useRef<HTMLDivElement | null>(null);
+const [pdfUnlocked, setPdfUnlocked] = useState(false);
+const [isDownloading, setIsDownloading] = useState(false);
 
-const readyCount = useMemo(() => {
-return tags.filter(
-(tag) =>
-tag.productName.trim().length > 0 &&
-tag.checkoutLink.trim().length > 0
-).length;
-}, [tags]);
+const printRef = useRef<HTMLDivElement | null>(null);
 
-function updateTag(index: number, field: keyof Tag, value: string) {
-setTags((prev) =>
-prev.map((tag, i) => (i === index ? { ...tag, [field]: value } : tag))
-);
+useEffect(() => {
+const unlocked = localStorage.getItem("pdfUnlocked");
+if (unlocked === "true") {
+setPdfUnlocked(true);
 }
+}, []);
 
-function clearAll() {
+const hasAnyContent = useMemo(() => {
+return (
+storeName.trim() !== "" ||
+tags.some(
+(tag) =>
+tag.productName.trim() !== "" ||
+tag.price.trim() !== "" ||
+tag.checkoutLink.trim() !== ""
+)
+);
+}, [storeName, tags]);
+
+const updateTag = (index: number, field: keyof Tag, value: string) => {
+setTags((prev) => {
+const next = [...prev];
+next[index] = {
+...next[index],
+[field]: value,
+};
+return next;
+});
+};
+
+const resetAll = () => {
 setStoreName("");
 setTags(makeEmptyTags());
-}
+};
 
-function printTags() {
-window.print();
-}
+const buildQrUrl = (value: string) => {
+const data = value.trim() || "https://designanyspace.com";
+return `https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(
+data
+)}`;
+};
 
-async function downloadPDF() {
-setShowPaywall(true);
-}
+const handleDownloadPDF = async () => {
+if (!printRef.current) return;
 
-async function previewPdfForOwnerOnly() {
-if (!sheetRef.current) return;
+try {
+setIsDownloading(true);
 
-const canvas = await html2canvas(sheetRef.current, {
-backgroundColor: "#ffffff",
+const canvas = await html2canvas(printRef.current, {
 scale: 2,
 useCORS: true,
+backgroundColor: "#ffffff",
 });
 
 const imgData = canvas.toDataURL("image/png");
-
 const pdf = new jsPDF({
 orientation: "portrait",
 unit: "pt",
@@ -73,750 +90,388 @@ format: "letter",
 
 const pageWidth = pdf.internal.pageSize.getWidth();
 const pageHeight = pdf.internal.pageSize.getHeight();
-const margin = 24;
 
-const usableWidth = pageWidth - margin * 2;
-const usableHeight = pageHeight - margin * 2;
+pdf.addImage(imgData, "PNG", 0, 0, pageWidth, pageHeight);
+pdf.save("designanyspace-qr-tags.pdf");
+} catch (error) {
+console.error("PDF download failed:", error);
+alert("Unable to generate PDF.");
+} finally {
+setIsDownloading(false);
+}
+};
 
-const imgWidth = canvas.width;
-const imgHeight = canvas.height;
-
-const ratio = Math.min(usableWidth / imgWidth, usableHeight / imgHeight);
-const finalWidth = imgWidth * ratio;
-const finalHeight = imgHeight * ratio;
-
-const x = (pageWidth - finalWidth) / 2;
-const y = margin;
-
-pdf.addImage(imgData, "PNG", x, y, finalWidth, finalHeight);
-pdf.save("designanyspace-tags.pdf");
+const handlePdfButtonClick = () => {
+if (pdfUnlocked) {
+handleDownloadPDF();
+return;
 }
 
-return (
-<>
-<main style={styles.page}>
-<div style={styles.container}>
-<header style={styles.header} className="no-print">
-<div style={styles.badge}>Design Any Space</div>
+window.location.href = STRIPE_UNLOCK_LINK;
+};
 
-<div style={styles.headerRow}>
-<div style={styles.headerText}>
-<h1 style={styles.title}>QR Product Tag Generator</h1>
+return (
+<main style={styles.page}>
+<div style={styles.shell}>
+<div style={styles.leftColumn}>
+<div style={styles.headerBlock}>
+<p style={styles.eyebrow}>DesignAnySpace</p>
+<h1 style={styles.title}>QR Tag Generator</h1>
 <p style={styles.subtitle}>
-Create one clean printable sheet with up to 6 different
-product tags for markets, pop-ups, vintage booths, and retail
-displays.
+Create a clean printable tag sheet with 6 QR checkout tags per
+page.
 </p>
 </div>
 
-<div style={styles.buttonRow}>
-<button onClick={clearAll} style={styles.secondaryButton}>
-Clear All
-</button>
-<button onClick={downloadPDF} style={styles.secondaryButton}>
-Download PDF
-</button>
-<button onClick={printTags} style={styles.primaryButton}>
-Print Tags
-</button>
-</div>
-</div>
-</header>
-
-<section style={styles.infoGrid} className="no-print">
-<div style={styles.infoCard}>
-<div style={styles.infoLabel}>How it works</div>
-<div style={styles.infoText}>
-Add product details, paste each checkout link, then print one
-mixed tag sheet.
-</div>
-</div>
-
-<div style={styles.infoCard}>
-<div style={styles.infoLabel}>Best for</div>
-<div style={styles.infoText}>
-Vendor booths, antique shops, furniture pieces, boutique
-displays, and pop-up events.
-</div>
-</div>
-
-<div style={styles.infoCard}>
-<div style={styles.infoLabel}>Filled tags</div>
-<div style={styles.readyText}>{readyCount} of 6 ready</div>
-</div>
-</section>
-
-<div style={styles.mainGrid} className="main-grid">
-<aside style={styles.sidebar} className="no-print">
-<div style={styles.panel}>
-<h2 style={styles.sectionTitle}>Tag Details</h2>
-
-<div style={styles.fieldBlock}>
-<label style={styles.label}>Store name:</label>
+<div style={styles.card}>
+<label style={styles.label}>Business Name</label>
 <input
-type="text"
 value={storeName}
 onChange={(e) => setStoreName(e.target.value)}
+placeholder="Business name"
 style={styles.input}
 />
 </div>
 
-<div style={styles.tagsStack}>
-{tags.map((tag, index) => (
-<div key={index} style={styles.editorCard}>
-<h3 style={styles.editorTitle}>Tag {index + 1}</h3>
+<div style={styles.card}>
+<div style={styles.cardTopRow}>
+<h2 style={styles.sectionTitle}>Tag Details</h2>
+<button type="button" onClick={resetAll} style={styles.secondaryButton}>
+Clear All
+</button>
+</div>
 
-<div style={styles.fieldBlock}>
-<label style={styles.label}>Product name:</label>
+<div style={styles.formsWrap}>
+{tags.map((tag, index) => (
+<div key={index} style={styles.tagFormCard}>
+<div style={styles.tagFormHeader}>Tag {index + 1}</div>
+
+<label style={styles.label}>Product Name</label>
 <input
-type="text"
 value={tag.productName}
 onChange={(e) =>
 updateTag(index, "productName", e.target.value)
 }
+placeholder="Product name"
 style={styles.input}
 />
-</div>
 
-<div style={styles.fieldBlock}>
-<label style={styles.label}>Price:</label>
+<label style={styles.label}>Price</label>
 <input
-type="text"
 value={tag.price}
-onChange={(e) =>
-updateTag(index, "price", e.target.value)
-}
+onChange={(e) => updateTag(index, "price", e.target.value)}
+placeholder="$0.00"
 style={styles.input}
 />
-</div>
 
-<div style={styles.fieldBlock}>
-<label style={styles.label}>Checkout link:</label>
+<label style={styles.label}>Checkout Link</label>
 <input
-type="url"
 value={tag.checkoutLink}
 onChange={(e) =>
 updateTag(index, "checkoutLink", e.target.value)
 }
+placeholder="https://"
 style={styles.input}
 />
+</div>
+))}
+</div>
+</div>
+
+<div style={styles.actionRow}>
+<button
+type="button"
+onClick={handlePdfButtonClick}
+style={styles.primaryButton}
+disabled={!hasAnyContent || isDownloading}
+>
+{isDownloading
+? "Preparing PDF..."
+: pdfUnlocked
+? "Download PDF"
+: "Unlock PDF – $9"}
+</button>
+</div>
+
+{!pdfUnlocked && (
+<p style={styles.helperText}>
+One-time unlock for printable PDF tag sheets.
+</p>
+)}
+</div>
+
+<div style={styles.rightColumn}>
+<div style={styles.previewHeader}>
+<h2 style={styles.previewTitle}>Live Preview</h2>
+<p style={styles.previewSub}>6 tags per printable page</p>
+</div>
+
+<div ref={printRef} style={styles.printPage}>
+<div style={styles.grid}>
+{tags.map((tag, index) => (
+<div key={index} style={styles.tagCard}>
+<div style={styles.qrWrap}>
+<img
+src={buildQrUrl(tag.checkoutLink)}
+alt={`QR code ${index + 1}`}
+style={styles.qrImage}
+/>
+</div>
+
+<div style={styles.bottomBox}>
+<div style={styles.bottomLeft}>
+<div style={styles.productName}>
+{tag.productName || "Product Name"}
+</div>
+<div style={styles.price}>{tag.price || "$0.00"}</div>
+</div>
+
+<div style={styles.scanText}>scan to pay</div>
 </div>
 </div>
 ))}
 </div>
 </div>
-</aside>
 
-<section style={styles.previewSection}>
-<div style={styles.panel}>
-<div style={styles.previewHeader} className="no-print">
-<div>
-<h2 style={styles.sectionTitle}>Mixed Tag Sheet Preview</h2>
-<p style={styles.previewSubtext}>
-One printable sheet with up to 6 different product tags.
-</p>
-</div>
-
-<div style={styles.previewSite}>designanyspace.com</div>
-</div>
-
-<div
-ref={sheetRef}
-className="sheet-grid"
-style={styles.sheetGrid}
->
-{tags.map((tag, index) => {
-const displayStore = storeName.trim();
-const displayProduct =
-tag.productName.trim() || "Product Name";
-const cleanedPrice = tag.price.trim().replace(/^\~+/, "");
-const displayPrice = cleanedPrice ? `~${cleanedPrice}` : "~";
-const hasLink =
-tag.checkoutLink.startsWith("https://") ||
-tag.checkoutLink.startsWith("http://");
-
-return (
-<div key={index} className="tag-wrap" style={styles.tagWrap}>
-<div className="cut-guide cut-guide-tl" />
-<div className="cut-guide cut-guide-tr" />
-<div className="cut-guide cut-guide-bl" />
-<div className="cut-guide cut-guide-br" />
-
-<div className="tag-card" style={styles.tagCard}>
-<div style={styles.tagInner}>
-<div style={styles.tagHeaderRow}>
-<div style={styles.tagStoreName}>
-{displayStore || "Store Name"}
-</div>
-
-<div style={styles.tagQrColumn}>
-<div style={styles.scanLabel}>Scan to pay</div>
-<div style={styles.qrOuterBox}>
-<div style={styles.qrInnerBox}>
-{hasLink ? (
-<QRCode
-value={tag.checkoutLink}
-size={72}
-bgColor="#FFFFFF"
-fgColor="#000000"
-/>
-) : (
-<div style={styles.qrPlaceholder}>QR</div>
-)}
+<div style={styles.footerNote}>
+created by: designanyspace.com
 </div>
 </div>
 </div>
-</div>
-
-<div style={styles.tagBottomLeft}>
-<div style={styles.tagProductName}>
-{displayProduct}
-</div>
-<div style={styles.tagPrice}>{displayPrice}</div>
-</div>
-</div>
-</div>
-</div>
-);
-})}
-</div>
-</div>
-</section>
-</div>
-</div>
-
-{showPaywall && (
-<div style={styles.modalOverlay} className="no-print">
-<div style={styles.modalCard}>
-<div style={styles.modalEyebrow}>Unlock Generator</div>
-<h3 style={styles.modalTitle}>Download unlimited PDF tag sheets</h3>
-<p style={styles.modalText}>
-Perfect for vendor booths, antique shops, pop-ups, and retail
-displays.
-</p>
-
-<div style={styles.priceBox}>$9 one-time access</div>
-
-<a
-href={STRIPE_UNLOCK_LINK}
-target="_blank"
-rel="noreferrer"
-style={styles.unlockButton}
->
-Unlock with Stripe
-</a>
-
-<button
-onClick={() => setShowPaywall(false)}
-style={styles.closeButton}
->
-Maybe later
-</button>
-
-<button
-onClick={previewPdfForOwnerOnly}
-style={styles.ownerButton}
->
-Owner test PDF
-</button>
-
-<p style={styles.modalNote}>
-This launch version opens your Stripe checkout link. Secure
-automatic unlocking can be added next.
-</p>
-</div>
-</div>
-)}
 </main>
-
-<style jsx global>{`
-html,
-body {
-margin: 0;
-padding: 0;
-background: #ffffff;
-color: #111111;
-font-family: Inter, ui-sans-serif, system-ui, -apple-system,
-BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-
-* {
-box-sizing: border-box;
-}
-
-input,
-button,
-textarea,
-select,
-a {
-font-family: Inter, ui-sans-serif, system-ui, -apple-system,
-BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-
-.tag-wrap {
-position: relative;
-}
-
-.cut-guide {
-display: none;
-}
-
-@media (max-width: 1100px) {
-.main-grid {
-grid-template-columns: 1fr !important;
-}
-
-.sheet-grid {
-grid-template-columns: 1fr !important;
-}
-}
-
-@media print {
-@page {
-size: letter portrait;
-margin: 0.35in;
-}
-
-.no-print {
-display: none !important;
-}
-
-.main-grid {
-display: block !important;
-}
-
-.sheet-grid {
-display: grid !important;
-grid-template-columns: 1fr 1fr !important;
-gap: 12px !important;
-}
-
-.tag-wrap {
-position: relative !important;
-break-inside: avoid;
-page-break-inside: avoid;
-padding: 6px;
-}
-
-.tag-card {
-break-inside: avoid;
-page-break-inside: avoid;
-}
-
-.cut-guide {
-display: block !important;
-position: absolute;
-width: 14px;
-height: 14px;
-pointer-events: none;
-}
-
-.cut-guide-tl {
-top: 0;
-left: 0;
-border-top: 1px solid #000;
-border-left: 1px solid #000;
-}
-
-.cut-guide-tr {
-top: 0;
-right: 0;
-border-top: 1px solid #000;
-border-right: 1px solid #000;
-}
-
-.cut-guide-bl {
-bottom: 0;
-left: 0;
-border-bottom: 1px solid #000;
-border-left: 1px solid #000;
-}
-
-.cut-guide-br {
-bottom: 0;
-right: 0;
-border-bottom: 1px solid #000;
-border-right: 1px solid #000;
-}
-}
-`}</style>
-</>
 );
 }
 
-const styles: { [key: string]: React.CSSProperties } = {
+const styles: Record<string, React.CSSProperties> = {
 page: {
 minHeight: "100vh",
-background: "#ffffff",
-color: "#111111",
+background: "#f7f7f5",
+padding: "32px 20px",
 },
-container: {
-maxWidth: "1320px",
+shell: {
+maxWidth: 1400,
 margin: "0 auto",
-padding: "24px 20px 40px",
-},
-header: {
-border: "1px solid rgba(0,0,0,0.10)",
-borderRadius: 22,
-background: "#fff",
-padding: 20,
-boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
-marginBottom: 20,
-},
-badge: {
-display: "inline-block",
-border: "1px solid rgba(0,0,0,0.10)",
-borderRadius: 999,
-padding: "7px 12px",
-fontSize: 13,
-fontWeight: 600,
-letterSpacing: 0.2,
-marginBottom: 10,
-},
-headerRow: {
-display: "flex",
-flexWrap: "wrap",
-justifyContent: "space-between",
-alignItems: "flex-end",
-gap: 16,
-},
-headerText: {
-minWidth: 0,
-flex: "1 1 600px",
-},
-title: {
-margin: 0,
-fontSize: 40,
-lineHeight: 1.05,
-fontWeight: 800,
-letterSpacing: "-0.02em",
-},
-subtitle: {
-margin: "10px 0 0 0",
-maxWidth: 800,
-fontSize: 16,
-lineHeight: 1.45,
-color: "rgba(0,0,0,0.75)",
-},
-buttonRow: {
-display: "flex",
-gap: 10,
-flexWrap: "wrap",
-},
-primaryButton: {
-background: "#111111",
-color: "#ffffff",
-border: "1px solid #111111",
-borderRadius: 14,
-padding: "12px 18px",
-fontSize: 14,
-fontWeight: 700,
-cursor: "pointer",
-},
-secondaryButton: {
-background: "#ffffff",
-color: "#111111",
-border: "1px solid #111111",
-borderRadius: 14,
-padding: "12px 18px",
-fontSize: 14,
-fontWeight: 700,
-cursor: "pointer",
-},
-infoGrid: {
 display: "grid",
-gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-gap: 12,
-marginBottom: 20,
-},
-infoCard: {
-border: "1px solid rgba(0,0,0,0.10)",
-borderRadius: 20,
-padding: 14,
-background: "#fff",
-boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
-},
-infoLabel: {
-fontSize: 12,
-fontWeight: 700,
-letterSpacing: "0.08em",
-textTransform: "uppercase",
-marginBottom: 8,
-color: "rgba(0,0,0,0.6)",
-},
-infoText: {
-fontSize: 15,
-lineHeight: 1.4,
-},
-readyText: {
-fontSize: 28,
-fontWeight: 800,
-lineHeight: 1.1,
-marginTop: 8,
-},
-mainGrid: {
-display: "grid",
-gridTemplateColumns: "380px minmax(0, 1fr)",
-gap: 20,
+gridTemplateColumns: "420px 1fr",
+gap: 24,
 alignItems: "start",
 },
-sidebar: {
-minWidth: 0,
+leftColumn: {
+display: "flex",
+flexDirection: "column",
+gap: 18,
 },
-previewSection: {
-minWidth: 0,
+rightColumn: {
+display: "flex",
+flexDirection: "column",
+gap: 12,
 },
-panel: {
-border: "1px solid rgba(0,0,0,0.10)",
-borderRadius: 22,
-padding: 18,
+headerBlock: {
+padding: 4,
+},
+eyebrow: {
+margin: 0,
+fontSize: 12,
+letterSpacing: 1.6,
+textTransform: "uppercase",
+color: "rgba(0,0,0,0.55)",
+},
+title: {
+margin: "6px 0 8px",
+fontSize: 34,
+lineHeight: 1.05,
+fontWeight: 700,
+color: "#111",
+},
+subtitle: {
+margin: 0,
+fontSize: 15,
+lineHeight: 1.6,
+color: "rgba(0,0,0,0.66)",
+},
+card: {
 background: "#fff",
-boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
+border: "1px solid rgba(0,0,0,0.08)",
+borderRadius: 20,
+padding: 18,
+boxShadow: "0 12px 30px rgba(0,0,0,0.04)",
+},
+cardTopRow: {
+display: "flex",
+justifyContent: "space-between",
+alignItems: "center",
+marginBottom: 14,
+gap: 12,
 },
 sectionTitle: {
 margin: 0,
-fontSize: 20,
-fontWeight: 800,
-letterSpacing: "-0.02em",
-},
-fieldBlock: {
-marginTop: 14,
+fontSize: 18,
+fontWeight: 700,
+color: "#111",
 },
 label: {
 display: "block",
-marginBottom: 7,
-fontSize: 14,
-fontWeight: 700,
+fontSize: 13,
+fontWeight: 600,
+color: "#222",
+marginBottom: 8,
+marginTop: 10,
 },
 input: {
 width: "100%",
-height: 46,
-borderRadius: 14,
-border: "1px solid rgba(0,0,0,0.14)",
-padding: "0 14px",
+border: "1px solid rgba(0,0,0,0.12)",
+borderRadius: 12,
+padding: "12px 14px",
 fontSize: 14,
 outline: "none",
 background: "#fff",
+boxSizing: "border-box",
 },
-tagsStack: {
+formsWrap: {
 display: "grid",
-gap: 14,
-marginTop: 16,
+gridTemplateColumns: "1fr",
+gap: 12,
 },
-editorCard: {
-border: "1px solid rgba(0,0,0,0.10)",
-borderRadius: 18,
+tagFormCard: {
+border: "1px solid rgba(0,0,0,0.08)",
+borderRadius: 16,
 padding: 14,
-background: "#fff",
+background: "#fafafa",
 },
-editorTitle: {
+tagFormHeader: {
+fontSize: 13,
+fontWeight: 700,
+marginBottom: 6,
+color: "#111",
+},
+actionRow: {
+display: "flex",
+gap: 12,
+},
+primaryButton: {
+appearance: "none",
+border: "none",
+background: "#111",
+color: "#fff",
+borderRadius: 16,
+padding: "14px 18px",
+fontSize: 15,
+fontWeight: 700,
+cursor: "pointer",
+width: "100%",
+},
+secondaryButton: {
+appearance: "none",
+border: "1px solid rgba(0,0,0,0.12)",
+background: "#fff",
+color: "#111",
+borderRadius: 12,
+padding: "10px 14px",
+fontSize: 13,
+fontWeight: 600,
+cursor: "pointer",
+},
+helperText: {
 margin: 0,
-fontSize: 18,
-fontWeight: 800,
+fontSize: 13,
+color: "rgba(0,0,0,0.6)",
 },
 previewHeader: {
 display: "flex",
 justifyContent: "space-between",
-alignItems: "flex-start",
+alignItems: "end",
 gap: 12,
-marginBottom: 14,
+padding: "4px 2px",
 },
-previewSubtext: {
-margin: "6px 0 0 0",
-fontSize: 14,
-color: "rgba(0,0,0,0.7)",
+previewTitle: {
+margin: 0,
+fontSize: 20,
+fontWeight: 700,
+color: "#111",
 },
-previewSite: {
-fontSize: 14,
-fontWeight: 600,
-paddingTop: 4,
-color: "rgba(0,0,0,0.7)",
+previewSub: {
+margin: 0,
+fontSize: 13,
+color: "rgba(0,0,0,0.6)",
 },
-sheetGrid: {
+printPage: {
+width: "100%",
+maxWidth: 816,
+aspectRatio: "8.5 / 11",
+background: "#fff",
+border: "1px solid rgba(0,0,0,0.08)",
+borderRadius: 18,
+padding: 22,
+boxShadow: "0 12px 30px rgba(0,0,0,0.05)",
+boxSizing: "border-box",
+},
+grid: {
 display: "grid",
-gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-gap: 12,
-},
-tagWrap: {
-position: "relative",
+gridTemplateColumns: "1fr 1fr",
+gap: 18,
+height: "100%",
 },
 tagCard: {
-border: "1.5px solid rgba(0,0,0,0.85)",
+border: "1.5px solid #111",
 borderRadius: 18,
-background: "#fff",
-aspectRatio: "2 / 1",
+display: "flex",
+flexDirection: "column",
+justifyContent: "space-between",
 overflow: "hidden",
+minHeight: 0,
+background: "#fff",
 },
-tagInner: {
-height: "100%",
-padding: "14px 16px 12px 16px",
-display: "flex",
-flexDirection: "column",
-justifyContent: "space-between",
-},
-tagHeaderRow: {
-display: "flex",
-justifyContent: "space-between",
-alignItems: "flex-start",
-gap: 14,
-},
-tagStoreName: {
-fontSize: 20,
-lineHeight: 1.05,
-fontWeight: 800,
-maxWidth: "64%",
-wordBreak: "break-word",
-minHeight: 20,
-letterSpacing: "-0.01em",
-},
-tagQrColumn: {
-display: "flex",
-flexDirection: "column",
-alignItems: "center",
-gap: 6,
-flexShrink: 0,
-},
-scanLabel: {
-fontSize: 11,
-lineHeight: 1,
-fontWeight: 700,
-textAlign: "center",
-},
-qrOuterBox: {
-width: 94,
-height: 94,
-border: "1.5px solid rgba(0,0,0,0.85)",
-borderRadius: 12,
+qrWrap: {
+flex: 1,
 display: "flex",
 alignItems: "center",
 justifyContent: "center",
-background: "#fff",
+padding: 14,
 },
-qrInnerBox: {
-width: 80,
-height: 80,
+qrImage: {
+width: "100%",
+maxWidth: 180,
+aspectRatio: "1 / 1",
+objectFit: "contain",
+},
+bottomBox: {
+borderTop: "1.5px solid #111",
+padding: "12px 14px",
 display: "flex",
-alignItems: "center",
-justifyContent: "center",
-background: "#fff",
+alignItems: "flex-end",
+justifyContent: "space-between",
+gap: 10,
+minHeight: 70,
 },
-qrPlaceholder: {
-fontSize: 16,
-fontWeight: 700,
-color: "rgba(0,0,0,0.55)",
-},
-tagBottomLeft: {
+bottomLeft: {
 display: "flex",
 flexDirection: "column",
-justifyContent: "flex-start",
-alignItems: "flex-start",
 gap: 4,
 minWidth: 0,
-maxWidth: "64%",
-marginTop: -8,
 },
-tagProductName: {
-fontSize: 16,
-lineHeight: 1.1,
-fontWeight: 700,
+productName: {
+fontSize: 14,
+fontWeight: 600,
+color: "#111",
+lineHeight: 1.2,
 wordBreak: "break-word",
 },
-tagPrice: {
-fontSize: 22,
-lineHeight: 1,
-fontWeight: 800,
-},
-
-modalOverlay: {
-position: "fixed",
-inset: 0,
-background: "rgba(0,0,0,0.45)",
-display: "flex",
-alignItems: "center",
-justifyContent: "center",
-padding: 20,
-zIndex: 1000,
-},
-modalCard: {
-width: "100%",
-maxWidth: 440,
-background: "#ffffff",
-borderRadius: 24,
-padding: 24,
-boxShadow: "0 20px 50px rgba(0,0,0,0.20)",
-border: "1px solid rgba(0,0,0,0.08)",
-},
-modalEyebrow: {
-fontSize: 12,
-fontWeight: 800,
-letterSpacing: "0.08em",
-textTransform: "uppercase",
-color: "rgba(0,0,0,0.6)",
-marginBottom: 8,
-},
-modalTitle: {
-margin: 0,
-fontSize: 28,
-lineHeight: 1.1,
-fontWeight: 800,
-},
-modalText: {
-margin: "12px 0 0 0",
-fontSize: 15,
-lineHeight: 1.5,
-color: "rgba(0,0,0,0.75)",
-},
-priceBox: {
-marginTop: 16,
-border: "1px solid rgba(0,0,0,0.12)",
-borderRadius: 16,
-padding: "14px 16px",
-fontSize: 24,
-fontWeight: 800,
-textAlign: "center",
-},
-unlockButton: {
-marginTop: 16,
-display: "block",
-width: "100%",
-textAlign: "center",
-textDecoration: "none",
-background: "#111111",
-color: "#ffffff",
-border: "1px solid #111111",
-borderRadius: 16,
-padding: "14px 18px",
-fontSize: 15,
-fontWeight: 800,
-},
-closeButton: {
-marginTop: 10,
-width: "100%",
-background: "#ffffff",
-color: "#111111",
-border: "1px solid rgba(0,0,0,0.14)",
-borderRadius: 16,
-padding: "12px 18px",
-fontSize: 14,
+price: {
+fontSize: 13,
 fontWeight: 700,
-cursor: "pointer",
+color: "#111",
 },
-ownerButton: {
-marginTop: 10,
-width: "100%",
-background: "#f5f5f5",
-color: "#111111",
-border: "1px solid rgba(0,0,0,0.10)",
-borderRadius: 16,
-padding: "12px 18px",
-fontSize: 14,
-fontWeight: 700,
-cursor: "pointer",
-},
-modalNote: {
-margin: "12px 0 0 0",
+scanText: {
 fontSize: 12,
-lineHeight: 1.5,
+fontWeight: 600,
+color: "#111",
+whiteSpace: "nowrap",
+textTransform: "lowercase",
+},
+footerNote: {
+fontSize: 12,
 color: "rgba(0,0,0,0.55)",
+textAlign: "center",
+marginTop: 2,
 },
 };
