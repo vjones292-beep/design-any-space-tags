@@ -1,458 +1,594 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import QRCode from "react-qr-code";
+import React, { useMemo, useState } from "react";
 
-type TagItem = {
-id: number;
+const PATTERN_OPTIONS = [
+"/patterns/cottage-pattern.jpg",
+"/patterns/dandelion-pattern.jpg",
+"/patterns/linen-pattern.jpg",
+"/patterns/marble-pattern.jpg",
+"/patterns/navy-pattern.jpg",
+"/patterns/paper-pattern.jpg",
+"/patterns/sage-pattern.jpg",
+"/patterns/wood-pattern.jpg",
+];
+
+function buildQrUrl(value: string) {
+if (!value.trim()) return "";
+return `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
+value
+)}`;
+}
+
+function formatPrice(price: string) {
+const trimmed = price.trim();
+if (!trimmed) return "";
+return trimmed.startsWith("$") ? trimmed : `$${trimmed}`;
+}
+
+function getPatternTone(pattern: string) {
+if (
+pattern.includes("navy-pattern") ||
+pattern.includes("wood-pattern") ||
+pattern.includes("sage-pattern")
+) {
+return "dark";
+}
+return "light";
+}
+
+type TagCardProps = {
+businessName: string;
 productName: string;
 price: string;
 checkoutLink: string;
+pattern: string;
 };
 
-const patterns = [
-"/patterns/navy-botanical.jpg",
-"/patterns/sage-regency.jpg",
-"/patterns/cottage-wildflower.jpg",
-"/patterns/dandelion-meadow.jpg",
-"/patterns/chevron-wood.jpg",
-"/patterns/antique-ledger.jpg",
-"/patterns/linen-natural.jpg",
-"/patterns/carrara-marble.jpg",
-];
-
-const patternNames = [
-"Navy Botanical",
-"Sage Regency",
-"Cottage Wildflower",
-"Dandelion Meadow",
-"Chevron Wood",
-"Antique Ledger",
-"Linen Natural",
-"Carrara Marble",
-];
-
-export default function PremiumQrTagGenerator() {
-const [businessName, setBusinessName] = useState("BUSINESS NAME");
-const [selectedPattern, setSelectedPattern] = useState(0);
-
-const [tags, setTags] = useState<TagItem[]>(
-Array.from({ length: 6 }, (_, i) => ({
-id: i + 1,
-productName: "Product Name",
-price: "0.00",
-checkoutLink: "",
-}))
-);
-
-const safeBusinessName = useMemo(
-() => (businessName.trim() ? businessName : "BUSINESS NAME"),
-[businessName]
-);
-
-const updateTag = (id: number, field: keyof TagItem, value: string) => {
-setTags((prev) =>
-prev.map((tag) => (tag.id === id ? { ...tag, [field]: value } : tag))
-);
-};
-
-const clearAll = () => {
-setBusinessName("");
-setTags(
-Array.from({ length: 6 }, (_, i) => ({
-id: i + 1,
-productName: "",
-price: "",
-checkoutLink: "",
-}))
-);
-};
+function TagCard({
+businessName,
+productName,
+price,
+checkoutLink,
+pattern,
+}: TagCardProps) {
+const qrUrl = useMemo(() => buildQrUrl(checkoutLink), [checkoutLink]);
+const displayPrice = formatPrice(price);
+const tone = getPatternTone(pattern);
 
 return (
-<div style={styles.page}>
-<div style={styles.headerWrap}>
-<div style={styles.brand}>DESIGN ANY SPACE</div>
-<h1 style={styles.title}>QR Tag Generator</h1>
-<p style={styles.subtitle}>
-Create a clean printable tag sheet with 6 QR checkout tags per page.
-</p>
-</div>
-
-<div style={styles.mainGrid}>
-<div style={styles.leftPanel}>
-<div style={styles.card}>
-<label style={styles.label}>Business Name</label>
-<input
-value={businessName}
-onChange={(e) => setBusinessName(e.target.value)}
-placeholder="Business name"
-style={styles.input}
-/>
-</div>
-
-<div style={styles.card}>
-<div style={styles.sectionHeader}>
-<h2 style={styles.sectionTitle}>Choose Background</h2>
-</div>
-
-<div style={styles.patternGrid}>
-{patterns.map((pattern, index) => (
-<button
-key={pattern}
-type="button"
-onClick={() => setSelectedPattern(index)}
-style={{
-...styles.patternButton,
-...(selectedPattern === index ? styles.patternButtonActive : {}),
-}}
->
+<div className={`tag-card ${tone === "dark" ? "dark-pattern" : "light-pattern"}`}>
 <div
+className="tag-pattern"
 style={{
-...styles.patternThumb,
-backgroundImage: `url(${pattern})`,
+backgroundImage: `url("${pattern}")`,
 }}
 />
-<div style={styles.patternName}>{patternNames[index]}</div>
-</button>
-))}
+
+<div className="tag-overlay">
+<div className="tag-top">
+<div className="business-name-text">
+{businessName.trim() || "DESIGN ANY SPACE"}
 </div>
 </div>
 
-<div style={styles.card}>
-<div style={styles.sectionHeader}>
-<h2 style={styles.sectionTitle}>Tag Details</h2>
-<button type="button" onClick={clearAll} style={styles.clearBtn}>
-Clear All
-</button>
-</div>
-
-<div style={styles.tagFormList}>
-{tags.map((tag) => (
-<div key={tag.id} style={styles.tagFormCard}>
-<div style={styles.tagFormTitle}>Tag {tag.id}</div>
-
-<label style={styles.smallLabel}>Product Name</label>
-<input
-value={tag.productName}
-onChange={(e) => updateTag(tag.id, "productName", e.target.value)}
-placeholder="Product name"
-style={styles.input}
-/>
-
-<label style={styles.smallLabel}>Price</label>
-<input
-value={tag.price}
-onChange={(e) => updateTag(tag.id, "price", e.target.value)}
-placeholder="35.00"
-style={styles.input}
-/>
-
-<label style={styles.smallLabel}>Checkout Link</label>
-<input
-value={tag.checkoutLink}
-onChange={(e) => updateTag(tag.id, "checkoutLink", e.target.value)}
-placeholder="https://"
-style={styles.input}
-/>
-</div>
-))}
-</div>
-</div>
-</div>
-
-<div style={styles.rightPanel}>
-<div style={styles.previewHeaderRow}>
-<h2 style={styles.previewTitle}>Live Preview</h2>
-<div style={styles.previewNote}>6 tags per printable page</div>
-</div>
-
-<div style={styles.previewGrid}>
-{tags.map((tag) => (
-<div
-key={tag.id}
-style={{
-...styles.previewTag,
-backgroundImage: `url(${patterns[selectedPattern]})`,
-backgroundSize: "cover",
-backgroundPosition: "center",
-}}
->
-<div style={styles.tagOverlay}>
-<div style={styles.tagTop}>{safeBusinessName}</div>
-
-<div style={styles.qrWrap}>
-{tag.checkoutLink.trim() ? (
-<QRCode
-value={tag.checkoutLink}
-size={120}
-bgColor="#ffffff"
-fgColor="#111111"
+<div className="tag-middle">
+{qrUrl ? (
+<img
+src={qrUrl}
+alt="QR Code"
+className="qr-image"
+crossOrigin="anonymous"
 />
 ) : (
-<div style={styles.qrPlaceholder}>QR appears here</div>
+<div className="qr-placeholder">QR</div>
 )}
+
+<div className="scan-text">SCAN TO PAY</div>
 </div>
 
-<div style={styles.scanText}>scan to pay</div>
-
-<div style={styles.tagBottom}>
-<div style={styles.productText}>
-{tag.productName.trim() || "Product Name"}
+<div className="tag-bottom">
+<div className="product-name-text">
+{productName.trim() || "product name"}
 </div>
-<div style={styles.priceText}>
-~{tag.price.trim() || "0.00"}
-</div>
-</div>
-</div>
-</div>
-))}
-</div>
+<div className="price-text">{displayPrice || "$0"}</div>
 </div>
 </div>
 </div>
 );
 }
 
-const styles: Record<string, React.CSSProperties> = {
-page: {
-minHeight: "100vh",
-background: "#f7f7f5",
-padding: "32px 24px 60px",
-fontFamily:
-'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-color: "#111111",
-},
-headerWrap: {
-maxWidth: "1400px",
-margin: "0 auto 28px auto",
-},
-brand: {
-fontSize: 13,
-letterSpacing: "0.25em",
-fontWeight: 600,
-marginBottom: 10,
-},
-title: {
-fontSize: 56,
-lineHeight: 1,
-margin: 0,
-fontWeight: 700,
-},
-subtitle: {
-fontSize: 18,
-color: "#333333",
-marginTop: 12,
-marginBottom: 0,
-maxWidth: 650,
-},
-mainGrid: {
-maxWidth: "1400px",
-margin: "0 auto",
-display: "grid",
-gridTemplateColumns: "420px 1fr",
-gap: 28,
-alignItems: "start",
-},
-leftPanel: {
-display: "flex",
-flexDirection: "column",
-gap: 20,
-},
-rightPanel: {
-display: "flex",
-flexDirection: "column",
-gap: 16,
-},
-card: {
-background: "#ffffff",
-borderRadius: 24,
-padding: 22,
-boxShadow: "0 1px 2px rgba(0,0,0,0.04), 0 12px 30px rgba(0,0,0,0.05)",
-border: "1px solid rgba(0,0,0,0.06)",
-},
-label: {
-display: "block",
-fontSize: 15,
-fontWeight: 600,
-marginBottom: 10,
-},
-smallLabel: {
-display: "block",
-fontSize: 14,
-fontWeight: 600,
-marginBottom: 8,
-marginTop: 14,
-},
-input: {
-width: "100%",
-height: 56,
-borderRadius: 16,
-border: "1px solid #d8d8d4",
-padding: "0 18px",
-fontSize: 16,
-outline: "none",
-background: "#ffffff",
-boxSizing: "border-box",
-},
-sectionHeader: {
-display: "flex",
-justifyContent: "space-between",
-alignItems: "center",
-marginBottom: 18,
-},
-sectionTitle: {
-fontSize: 20,
-margin: 0,
-fontWeight: 700,
-},
-clearBtn: {
-border: "1px solid #d5d5d0",
-background: "#ffffff",
-borderRadius: 999,
-padding: "10px 16px",
-fontSize: 15,
-fontWeight: 600,
-cursor: "pointer",
-},
-patternGrid: {
-display: "grid",
-gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-gap: 12,
-},
-patternButton: {
-border: "1px solid #d8d8d4",
-background: "#ffffff",
-borderRadius: 18,
-padding: 8,
-textAlign: "left",
-cursor: "pointer",
-},
-patternButtonActive: {
-border: "2px solid #111111",
-},
-patternThumb: {
-width: "100%",
-aspectRatio: "1 / 1",
-borderRadius: 12,
-backgroundSize: "cover",
-backgroundPosition: "center",
-backgroundColor: "#ecebe7",
-},
-patternName: {
-fontSize: 13,
-fontWeight: 600,
-marginTop: 8,
-lineHeight: 1.25,
-},
-tagFormList: {
-display: "flex",
-flexDirection: "column",
-gap: 18,
-maxHeight: "900px",
-overflowY: "auto",
-paddingRight: 4,
-},
-tagFormCard: {
-border: "1px solid #ecebe7",
-borderRadius: 20,
-padding: 18,
-background: "#fcfcfb",
-},
-tagFormTitle: {
-fontSize: 18,
-fontWeight: 700,
-marginBottom: 8,
-},
-previewHeaderRow: {
-display: "flex",
-justifyContent: "space-between",
-alignItems: "center",
-},
-previewTitle: {
-fontSize: 22,
-fontWeight: 700,
-margin: 0,
-},
-previewNote: {
-fontSize: 15,
-color: "#444444",
-fontWeight: 600,
-},
-previewGrid: {
-display: "grid",
-gridTemplateColumns: "repeat(2, minmax(260px, 1fr))",
-gap: 20,
-},
-previewTag: {
-borderRadius: 28,
-border: "2px solid #1c1c1c",
-minHeight: 350,
-overflow: "hidden",
-boxShadow: "0 12px 24px rgba(0,0,0,0.08)",
-backgroundColor: "#ffffff",
-},
-tagOverlay: {
-minHeight: 350,
-background: "rgba(255,255,255,0.12)",
-backdropFilter: "blur(0px)",
-display: "flex",
-flexDirection: "column",
-justifyContent: "space-between",
-},
-tagTop: {
-fontSize: 15,
-fontWeight: 700,
-letterSpacing: "0.12em",
-padding: "14px 18px",
-borderBottom: "2px solid #1c1c1c",
-background: "rgba(255,255,255,0.78)",
-},
-qrWrap: {
-width: 170,
-height: 170,
-margin: "26px auto 10px auto",
-background: "#ffffff",
-borderRadius: 18,
-display: "flex",
-alignItems: "center",
-justifyContent: "center",
-border: "2px dashed rgba(0,0,0,0.2)",
-boxSizing: "border-box",
-padding: 14,
-},
-qrPlaceholder: {
-fontSize: 14,
-color: "#555555",
-fontWeight: 600,
-textAlign: "center",
-},
-scanText: {
-textAlign: "center",
-fontSize: 16,
-fontWeight: 700,
-textTransform: "lowercase",
-marginBottom: 16,
-background: "rgba(255,255,255,0.74)",
-width: "fit-content",
-marginLeft: "auto",
-marginRight: "auto",
-padding: "4px 10px",
-borderRadius: 999,
-},
-tagBottom: {
-borderTop: "2px solid #1c1c1c",
-background: "rgba(255,255,255,0.82)",
-padding: "14px 18px 16px",
-},
-productText: {
-fontSize: 18,
-fontWeight: 700,
-lineHeight: 1.2,
-marginBottom: 4,
-},
-priceText: {
-fontSize: 18,
-fontWeight: 700,
-lineHeight: 1.2,
-},
+export default function GeneratorPage() {
+const [businessName, setBusinessName] = useState("");
+const [productName, setProductName] = useState("");
+const [price, setPrice] = useState("");
+const [checkoutLink, setCheckoutLink] = useState("");
+const [selectedPattern, setSelectedPattern] = useState(PATTERN_OPTIONS[0]);
+
+const handlePrint = () => {
+window.print();
 };
+
+return (
+<>
+<div className="page-wrap no-print">
+<div className="header-block">
+<h1 className="page-title">Design Any Space QR Tag Generator</h1>
+<p className="page-subtitle">
+Create clean patterned QR tags and print 6 per page.
+</p>
+</div>
+
+<div className="main-grid">
+<div className="form-panel">
+<h2 className="panel-title">Tag Details</h2>
+
+<label className="field-label">Business Name</label>
+<input
+className="text-input"
+value={businessName}
+onChange={(e) => setBusinessName(e.target.value)}
+placeholder=""
+/>
+
+<label className="field-label">Product Name</label>
+<input
+className="text-input"
+value={productName}
+onChange={(e) => setProductName(e.target.value)}
+placeholder=""
+/>
+
+<label className="field-label">Price</label>
+<input
+className="text-input"
+value={price}
+onChange={(e) => setPrice(e.target.value)}
+placeholder=""
+/>
+
+<label className="field-label">Checkout Link</label>
+<input
+className="text-input"
+value={checkoutLink}
+onChange={(e) => setCheckoutLink(e.target.value)}
+placeholder=""
+/>
+
+<label className="field-label">Pattern</label>
+<select
+className="text-input"
+value={selectedPattern}
+onChange={(e) => setSelectedPattern(e.target.value)}
+>
+{PATTERN_OPTIONS.map((patternPath, index) => (
+<option key={patternPath} value={patternPath}>
+Pattern {index + 1}
+</option>
+))}
+</select>
+
+<div className="pattern-preview-row">
+{PATTERN_OPTIONS.map((patternPath, index) => (
+<button
+key={patternPath}
+type="button"
+className={`pattern-thumb-button ${
+selectedPattern === patternPath ? "active-thumb" : ""
+}`}
+onClick={() => setSelectedPattern(patternPath)}
+aria-label={`Choose pattern ${index + 1}`}
+>
+<div
+className="pattern-thumb"
+style={{ backgroundImage: `url("${patternPath}")` }}
+/>
+</button>
+))}
+</div>
+
+<button className="print-button" onClick={handlePrint}>
+Print / Save PDF
+</button>
+</div>
+
+<div className="preview-panel">
+<h2 className="panel-title">6 Tag Preview</h2>
+
+<div className="screen-sheet">
+{Array.from({ length: 6 }).map((_, index) => (
+<div className="screen-tag-wrap" key={index}>
+<TagCard
+businessName={businessName}
+productName={productName}
+price={price}
+checkoutLink={checkoutLink}
+pattern={selectedPattern}
+/>
+</div>
+))}
+</div>
+</div>
+</div>
+</div>
+
+<div className="print-sheet">
+{Array.from({ length: 6 }).map((_, index) => (
+<div className="print-tag-wrap" key={index}>
+<TagCard
+businessName={businessName}
+productName={productName}
+price={price}
+checkoutLink={checkoutLink}
+pattern={selectedPattern}
+/>
+</div>
+))}
+</div>
+
+<style jsx global>{`
+* {
+box-sizing: border-box;
+}
+
+html,
+body {
+margin: 0;
+padding: 0;
+font-family: Arial, Helvetica, sans-serif;
+background: #f6f6f4;
+color: #111;
+}
+
+button,
+input,
+select {
+font: inherit;
+}
+
+.page-wrap {
+max-width: 1400px;
+margin: 0 auto;
+padding: 28px 20px 40px;
+}
+
+.header-block {
+margin-bottom: 22px;
+}
+
+.page-title {
+margin: 0 0 6px;
+font-size: 34px;
+line-height: 1.1;
+font-weight: 700;
+}
+
+.page-subtitle {
+margin: 0;
+color: #666;
+font-size: 15px;
+}
+
+.main-grid {
+display: grid;
+grid-template-columns: 360px 1fr;
+gap: 24px;
+align-items: start;
+}
+
+.form-panel,
+.preview-panel {
+background: #ffffff;
+border-radius: 22px;
+padding: 20px;
+box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+}
+
+.panel-title {
+margin: 0 0 18px;
+font-size: 20px;
+font-weight: 700;
+}
+
+.field-label {
+display: block;
+margin: 14px 0 8px;
+font-size: 14px;
+font-weight: 600;
+}
+
+.text-input {
+width: 100%;
+min-height: 48px;
+border: 1px solid #d6d6d1;
+border-radius: 14px;
+padding: 12px 14px;
+background: transparent;
+outline: none;
+box-shadow: none;
+}
+
+.text-input:focus {
+border-color: #111;
+}
+
+.pattern-preview-row {
+display: grid;
+grid-template-columns: repeat(4, 1fr);
+gap: 10px;
+margin-top: 14px;
+}
+
+.pattern-thumb-button {
+border: 2px solid transparent;
+background: transparent;
+padding: 0;
+border-radius: 14px;
+overflow: hidden;
+cursor: pointer;
+}
+
+.active-thumb {
+border-color: #111;
+}
+
+.pattern-thumb {
+width: 100%;
+aspect-ratio: 1 / 1;
+border-radius: 12px;
+background-repeat: no-repeat;
+background-position: center;
+background-size: cover;
+}
+
+.print-button {
+width: 100%;
+margin-top: 18px;
+min-height: 50px;
+border: none;
+border-radius: 14px;
+background: #111;
+color: #fff;
+font-weight: 700;
+cursor: pointer;
+}
+
+.screen-sheet {
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+gap: 18px;
+justify-items: center;
+align-items: start;
+min-height: 840px;
+padding: 10px;
+background: linear-gradient(180deg, #fafaf8 0%, #f1f1ec 100%);
+border-radius: 18px;
+}
+
+.screen-tag-wrap,
+.print-tag-wrap {
+display: flex;
+justify-content: center;
+align-items: center;
+}
+
+.tag-card {
+width: 2.5in;
+height: 4in;
+position: relative;
+overflow: hidden;
+border-radius: 0;
+box-shadow: none;
+background: #f3f1ea;
+}
+
+.tag-pattern {
+position: absolute;
+inset: 0;
+background-repeat: no-repeat;
+background-position: center center;
+background-size: cover;
+transform: scale(1.06);
+transform-origin: center;
+}
+
+.tag-card.light-pattern .tag-pattern {
+filter: brightness(1.03) contrast(0.98) saturate(0.96);
+}
+
+.tag-card.dark-pattern .tag-pattern {
+filter: brightness(1.24) contrast(0.9) saturate(0.92);
+}
+
+.tag-overlay {
+position: absolute;
+inset: 0;
+display: flex;
+flex-direction: column;
+justify-content: space-between;
+padding: 14px 12px 16px;
+}
+
+.tag-card.light-pattern .tag-overlay {
+background: linear-gradient(
+180deg,
+rgba(255, 255, 255, 0.12) 0%,
+rgba(255, 255, 255, 0.08) 36%,
+rgba(255, 255, 255, 0.14) 100%
+);
+}
+
+.tag-card.dark-pattern .tag-overlay {
+background: linear-gradient(
+180deg,
+rgba(255, 255, 255, 0.26) 0%,
+rgba(255, 255, 255, 0.16) 34%,
+rgba(255, 255, 255, 0.22) 100%
+);
+}
+
+.tag-top {
+display: flex;
+justify-content: center;
+align-items: flex-start;
+padding: 0 8px;
+min-height: 52px;
+}
+
+.business-name-text {
+width: 100%;
+max-width: 100%;
+font-size: 15px;
+font-weight: 700;
+line-height: 1.15;
+letter-spacing: 1px;
+text-transform: uppercase;
+color: #111;
+text-align: center;
+word-break: break-word;
+overflow-wrap: anywhere;
+text-wrap: balance;
+text-shadow: 0 1px 2px rgba(255, 255, 255, 0.45);
+}
+
+.tag-middle {
+flex: 1;
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+gap: 10px;
+}
+
+.qr-image {
+width: 94px;
+height: 94px;
+object-fit: contain;
+display: block;
+background: rgba(255, 255, 255, 0.82);
+padding: 4px;
+border-radius: 6px;
+filter: contrast(1.45) brightness(1.05);
+box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+
+.qr-placeholder {
+width: 94px;
+height: 94px;
+display: flex;
+align-items: center;
+justify-content: center;
+background: rgba(255, 255, 255, 0.55);
+border-radius: 6px;
+color: #444;
+font-size: 18px;
+font-weight: 700;
+}
+
+.scan-text {
+font-size: 10px;
+font-weight: 800;
+letter-spacing: 1.7px;
+color: #111;
+text-align: center;
+text-shadow: 0 1px 2px rgba(255, 255, 255, 0.45);
+}
+
+.tag-bottom {
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 3px;
+padding: 0 10px;
+}
+
+.product-name-text {
+font-size: 16px;
+font-weight: 600;
+line-height: 1.12;
+color: #111;
+text-align: center;
+word-break: break-word;
+overflow-wrap: anywhere;
+text-shadow: 0 1px 2px rgba(255, 255, 255, 0.45);
+}
+
+.price-text {
+font-size: 22px;
+font-weight: 700;
+line-height: 1.05;
+color: #111;
+text-align: center;
+text-shadow: 0 1px 2px rgba(255, 255, 255, 0.45);
+}
+
+.print-sheet {
+display: none;
+}
+
+@page {
+size: letter portrait;
+margin: 0.35in;
+}
+
+@media (max-width: 1180px) {
+.main-grid {
+grid-template-columns: 1fr;
+}
+
+.screen-sheet {
+min-height: auto;
+}
+}
+
+@media (max-width: 780px) {
+.screen-sheet {
+grid-template-columns: 1fr;
+}
+}
+
+@media print {
+html,
+body {
+background: #fff;
+}
+
+.no-print {
+display: none !important;
+}
+
+.print-sheet {
+display: grid !important;
+grid-template-columns: repeat(2, 1fr);
+gap: 0.2in;
+width: 100%;
+margin: 0;
+padding: 0;
+}
+
+.print-tag-wrap {
+break-inside: avoid;
+page-break-inside: avoid;
+}
+
+.tag-card {
+width: 2.5in !important;
+height: 4in !important;
+border-radius: 0 !important;
+box-shadow: none !important;
+-webkit-print-color-adjust: exact;
+print-color-adjust: exact;
+}
+
+.tag-pattern,
+.tag-overlay,
+.qr-image,
+.qr-placeholder {
+-webkit-print-color-adjust: exact;
+print-color-adjust: exact;
+}
+}
+`}</style>
+</>
+);
+}
